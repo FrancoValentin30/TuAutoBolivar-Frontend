@@ -1,0 +1,383 @@
+/* Base styles for the body and fonts */
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: #f0f2f5; /* Light, subtle gray background */
+    color: #333; /* Darker text for better readability */
+}
+/* Gradient Backgrounds */
+.gradient-bg-main {
+    background-image: linear-gradient(to right top, #6a00f4, #6e00f5, #7200f6, #7600f7, #7900f8, #7d00f9, #8100fa, #8500fa, #8900fb, #8d00fc, #9000fd, #9400fe);
+}
+/* Initial header background for gradient-bg-dark: opaque */
+.gradient-bg-dark {
+    background-image: linear-gradient(to right top, #4a00af, #4c00b2, #4e00b5, #5000b8, #5200bb, #5400bd, #5600bf, #5800c1, #5a00c3, #5c00c5, #5e00c7, #6000c9);
+    transition: background-color 0.3s ease-in-out; /* Smooth transition for background changes */
+}
+/* Transparent header class applied by JS on scroll */
+.header-transparent {
+    background-color: rgba(74, 0, 175, 0.7); /* Slightly transparent version of the dark purple */
+}
+
+/* Accent Button Color */
+.btn-accent {
+    background-image: linear-gradient(to right, #ec4899, #db2777); /* Pink/Magenta gradient */
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(236, 72, 153, 0.3);
+}
+.btn-accent:hover {
+    background-image: linear-gradient(to right, #db2777, #be185d); /* Darker on hover */
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(236, 72, 153, 0.4);
+}
+
+/* Primary Button (blue) */
+.btn-primary {
+    background-image: linear-gradient(to right, #3b82f6, #2563eb); /* Blue gradient */
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+.btn-primary:hover {
+    background-image: linear-gradient(to right, #2563eb, #1d4ed8); /* Darker gradient on hover */
+    transform: translateY(-2px); /* Slight lift on hover */
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+}
+/* Secondary Button (lighter blue) */
+.btn-secondary {
+    background-image: linear-gradient(to right, #60a5fa, #3b82f6); /* Lighter blue gradient */
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+}
+.btn-secondary:hover {
+    background-image: linear-gradient(to right, #3b82f6, #2563eb); /* Darker gradient on hover */
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+}
+/* Danger Button (red) */
+.btn-danger {
+    background-image: linear-gradient(to right, #ef4444, #dc2626); /* Red gradient */
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+.btn-danger:hover {
+    background-image: linear-gradient(to right, #dc2626, #b91c1c); /* Darker red on hover */
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+}
+/* Success Button (green) */
+.btn-success {
+    background-image: linear-gradient(to right, #22c55e, #16a34a); /* Green gradient */
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+.btn-success:hover {
+    background-image: linear-gradient(to right, #16a34a, #15803d); /* Darker green on hover */
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+}
+
+
+/* Fade-in animation for page transitions */
+.fade-in {
+    animation: fadeIn 0.6s ease-out forwards;
+}
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(15px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+/* Custom scrollbar for a cleaner look */
+::-webkit-scrollbar {
+    width: 10px;
+}
+::-webkit-scrollbar-track {
+    background: #e0e2e5; /* Lighter track */
+    border-radius: 10px;
+}
+::-webkit-scrollbar-thumb {
+    background: #a0a4ab; /* Muted thumb color */
+    border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: #7a7e85; /* Darker on hover */
+}
+
+/* Card hover effect */
+.vehicle-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    cursor: pointer;
+}
+.vehicle-card:hover {
+    transform: translateY(-5px); /* Lift card slightly */
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15); /* More prominent shadow */
+}
+/* Table row hover effect */
+.table-striped tbody tr {
+    transition: background-color 0.2s ease;
+}
+.table-striped tbody tr:nth-child(odd) {
+    background-color: #f9fafb; /* Light stripe for tables */
+}
+.table-striped tbody tr:hover {
+    background-color: #f0f4f8; /* Lighter background on hover */
+}
+
+/* Navigation Button Style in Header */
+.nav-btn {
+    background-color: transparent;
+    color: white;
+    padding: 0.75rem 1.25rem;
+    border-radius: 9999px; /* Pill shape */
+    transition: all 0.3s ease;
+    border: 1px solid rgba(255, 255, 255, 0.3); /* Subtle white border */
+}
+.nav-btn:hover {
+    background-color: rgba(255, 255, 255, 0.1); /* Slight background on hover */
+    border-color: rgba(255, 255, 255, 0.6);
+    transform: translateY(-1px);
+}
+.nav-btn.active {
+    background-color: rgba(255, 255, 255, 0.2);
+    border-color: white;
+    font-weight: 600;
+}
+.nav-btn-highlight {
+    background-image: linear-gradient(to right, #ec4899, #db2777); /* Pink/Magenta gradient */
+    color: white;
+    box-shadow: 0 4px 15px rgba(236, 72, 153, 0.3);
+    border: none;
+}
+.nav-btn-highlight:hover {
+    background-image: linear-gradient(to right, #db2777, #be185d);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(236, 72, 153, 0.4);
+}
+
+/* Overlay for contact panel and general modals */
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6); /* Semi-transparent black background */
+    display: flex;
+    justify-content: center; /* Corrected typo here */
+    align-items: center;
+    z-index: 1000; /* Above all other content */
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+.overlay.show {
+    opacity: 1;
+    visibility: visible;
+}
+.modal-panel { /* Generic style for all modal content panels */
+    background-color: white;
+    padding: 2.5rem;
+    border-radius: 1.5rem; /* Large rounded corners */
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2); /* Deeper shadow */
+    max-width: 500px;
+    width: 90%;
+    transform: scale(0.9);
+    transition: transform 0.3s ease;
+    position: relative;
+}
+.overlay.show .modal-panel {
+    transform: scale(1);
+}
+.close-button {
+    position: absolute;
+    top: 1.25rem;
+    right: 1.25rem;
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: #888;
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+.close-button:hover {
+    color: #333;
+}
+
+/* Custom file input button styling */
+.custom-file-input {
+    display: inline-block;
+    background-color: #e2e8f0; /* Light gray background */
+    color: #374151; /* Dark text */
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.75rem; /* Rounded corners */
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    text-align: center;
+}
+.custom-file-input:hover {
+    background-color: #cbd5e1; /* Slightly darker on hover */
+}
+.custom-file-input input[type="file"] {
+    display: none; /* Hide the default file input */
+}
+
+/* Modal for confirmation (specific style) */
+.confirmation-modal-content {
+    max-width: 450px; /* Slightly smaller for confirmation */
+    text-align: center;
+}
+.modal-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin-top: 2rem;
+}
+
+/* Carousel specific styles */
+.carousel-container {
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+    border-radius: 1rem;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.carousel-image {
+    width: 100%;
+    height: 400px; /* Fixed height for consistency */
+    object-fit: cover;
+    object-position: center;
+    display: block;
+    transition: opacity 0.3s ease-in-out;
+}
+
+.carousel-button {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background-color: rgba(0, 0, 0, 0.5);
+    color: white;
+    border: none;
+    padding: 0.75rem 1rem;
+    cursor: pointer;
+    font-size: 1.5rem;
+    border-radius: 9999px; /* Pill shape */
+    transition: background-color 0.3s ease;
+    z-index: 10;
+}
+.carousel-button:hover {
+    background-color: rgba(0, 0, 0, 0.7);
+}
+.carousel-button.left {
+    left: 1rem;
+}
+.carousel-button.right {
+    right: 1rem;
+}
+
+.thumbnail-reel {
+    display: flex;
+    justify-content: center;
+    gap: 0.75rem;
+    margin-top: 1rem;
+    overflow-x: auto; /* Enable horizontal scrolling for many thumbnails */
+    padding-bottom: 0.5rem; /* Space for scrollbar */
+}
+.thumbnail-reel::-webkit-scrollbar {
+    height: 8px;
+}
+.thumbnail-reel::-webkit-scrollbar-track {
+    background: #e0e2e5;
+    border-radius: 10px;
+}
+.thumbnail-reel::-webkit-scrollbar-thumb {
+    background: #a0a4ab;
+    border-radius: 10px;
+}
+.thumbnail-reel::-webkit-scrollbar-thumb:hover {
+    background: #7a7e85;
+}
+
+.thumbnail-item {
+    width: 80px;
+    height: 60px;
+    object-fit: cover;
+    object-position: center;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: border-color 0.2s ease, transform 0.2s ease;
+}
+.thumbnail-item:hover {
+    transform: scale(1.05);
+}
+.thumbnail-item.active {
+    border-color: #3b82f6; /* Highlight active thumbnail */
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+} 
+
+/* Estilos para el carrusel de previsualización de imágenes */
+.preview-image-wrapper {
+    position: relative;
+    flex-shrink: 0; /* Evita que las imágenes se encojan */
+    border: 4px solid transparent;
+    transition: border-color 0.2s ease;
+}
+
+.preview-image-wrapper.is-primary {
+    border-color: #3b82f6; /* Borde azul para la imagen principal */
+}
+
+.preview-image-actions {
+    position: absolute;
+    top: 0;
+    right: 0;
+    display: flex;
+    gap: 4px;
+    padding: 6px;
+    background-color: rgba(0, 0, 0, 0.4);
+    border-bottom-left-radius: 0.5rem;
+}
+
+.preview-action-btn {
+    background: none;
+    border: none;
+    color: white;
+    cursor: pointer;
+    font-size: 1rem;
+    padding: 4px;
+    line-height: 1;
+    transition: transform 0.2s ease;
+}
+
+.preview-action-btn:hover {
+    transform: scale(1.15);
+}
+
+/* Estilos para el contenido del modal de imagen */
+.image-modal-content {
+    max-width: 90vw;
+    max-height: 90vh;
+    object-fit: contain;
+    border-radius: 0.5rem;
+    box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+}
+
+/* Estilos para el botón de ampliar */
+.expand-button {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background-color: rgba(0, 0, 0, 0.5);
+    color: white;
+    border: none;
+    padding: 0.75rem;
+    cursor: pointer;
+    border-radius: 9999px;
+    transition: all 0.2s ease;
+    z-index: 10;
+    font-size: 1.25rem;
+    line-height: 1;
+}
+
+.expand-button:hover {
+    background-color: rgba(0, 0, 0, 0.7);
+    transform: scale(1.1);
+}
