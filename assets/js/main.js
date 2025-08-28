@@ -9,93 +9,49 @@ const BACKEND_URL = 'http://127.0.0.1:8000';
 let currentUser = null; // null for logged out, { id: 'u1', name: '...', email: '...', role: 'user', isActive: true }
 let currentActiveNav = null; // To keep track of the active navigation link
 let publicationImageFiles = []; // Guardará los archivos de imagen que el usuario vaya añadiendo.
+let users = [];
 
-// In-memory data store for users (simulated)
-let users = [
-    // Added lastModifiedByAdmin and lastLoginTime for demo purposes
-    // Added adminModifiedFields to store which fields were changed by admin
-    { id: 'u1', name: 'Franco Valentin', email: 'superadmin@autoexpress.com', phone: '+54 9 2314 111-222', password: 'password123', role: 'superadmin', isActive: true, lastModifiedByAdmin: 0, lastLoginTime: 0, adminModifiedFields: [] },
-    { id: 'u2', name: 'Admin Ejemplo', email: 'admin@autoexpress.com', phone: '+54 9 2314 333-444', password: 'password123', role: 'admin', isActive: true, lastModifiedByAdmin: 0, lastLoginTime: 0, adminModifiedFields: [] },
-    { id: 'u3', name: 'Usuario Regular', email: 'user@example.com', phone: '+54 9 2314 555-666', password: 'password123', role: 'user', isActive: true, lastModifiedByAdmin: 0, lastLoginTime: 0, adminModifiedFields: [] },
-    { id: 'u4', name: 'Maria Lopez', email: 'maria@example.com', phone: '+54 9 2314 777-888', password: 'password123', role: 'user', isActive: false, lastModifiedByAdmin: 0, lastLoginTime: 0, adminModifiedFields: [] }
-];
-
-// In-memory data store for vehicles (simulated)
-//let vehicles = [
-//   { id: 'v1', brand: 'Volkswagen', model: 'Amarok', year: 2021, price: 35000, description: 'Pickup robusta con excelente rendimiento, ideal para trabajo y aventura. Equipada con tracción 4x4 y asientos de cuero.', imageUrls: ['https://www.topgear.com/sites/default/files/2022/07/Large-41982-VolkswagenAmarok.jpg', 'https://cdn.motor1.com/images/mgl/zE3oR/s3/toyota-corolla-se-2019.jpg', 'https://autoblog.com.ar/wp-content/uploads/2022/07/FIAT-CRONOS-2023-1.jpg'], ownerId: 'u3', status: 'active', isFeatured: true, condition: 'Usado', fuelType: 'Diésel', mileage: 75000, carType: 'Pickup', transmission: 'Automática', contactPhone: '+54 9 2314 555-123' },
-//   { id: 'v2', brand: 'Fiat', model: 'Cronos', year: 2022, price: 18000, description: 'Sedán compacto y eficiente, perfecto para la ciudad. Bajo consumo de combustible y amplio espacio interior.', imageUrls: ['https://autoblog.com.ar/wp-content/uploads/2022/07/FIAT-CRONOS-2023-1.jpg', 'https://www.topgear.com/sites/default/files/2022/07/Large-41982-VolkswagenAmarok.jpg'], ownerId: 'u3', status: 'active', isFeatured: false, condition: 'Nuevo', fuelType: 'Nafta', mileage: 1000, carType: 'Sedán', transmission: 'Manual', contactPhone: '+54 9 2314 666-456' },
-//   { id: 'v3', brand: 'Toyota', model: 'Corolla', year: 2019, price: 21000, description: 'Clásico sedán confiable y cómodo, con historial de servicio completo y muy bien cuidado. Ideal para el uso diario.', imageUrls: ['https://www.toyota.com/img/vehicles/2019/corolla/gallery/exterior/2019_Corolla_SE_01_ext_D_8686.jpg'], ownerId: 'u2', status: 'active', isFeatured: false, condition: 'Usado', fuelType: 'Nafta', mileage: 45000, carType: 'Sedán', transmission: 'Automática', contactPhone: '+54 9 2314 777-789' },
-//  { id: 'v4', brand: 'Volkswagen', model: 'Golf', year: 2021, price: 22000, description: 'Hatchback deportivo y elegante, con excelente rendimiento y tecnología avanzada. ¡Una verdadera joya! Perfecto para quienes buscan combinar estilo y eficiencia.', imageUrls: ['https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/2020_Volkswagen_Golf_1.5_TSI_Life_%28Mk8%29_front.jpg/1200px-2020_Volkswagen_Golf_1.5_TSI_Life_%28Mk8%29_front.jpg'], ownerId: 'u1', status: 'active', isFeatured: true, condition: 'Usado', fuelType: 'Nafta', mileage: 28000, carType: 'Hatchback', transmission: 'Manual', contactPhone: '+54 9 2314 888-012' }
-//];
 
 let publicationsData = [];
 // Vehicles array global (antes estaba comentado). Se llenará desde la API.
 let vehicles = [];
-
-// In-memory data store for testimonials (simulated)
-let testimonials = [
-    { id: 't1', userId: 'u3', authorName: 'Marcos R.', content: 'Encontré mi camioneta perfecta en TuAutoBolivar en tiempo récord. El proceso fue simple y seguro. ¡Altamente recomendado!', dateSubmitted: new Date('2025-07-20T10:00:00'), approved: true, approvedBy: 'u1', approvedDate: new Date('2025-07-20T11:00:00') },
-    { id: 't2', userId: null, authorName: 'Laura P.', content: 'Vender mi auto nunca fue tan fácil. La plataforma es muy intuitiva y recibí varias ofertas serias en pocos días.', dateSubmitted: new Date('2025-07-21T14:30:00'), approved: true, approvedBy: 'u1', approvedDate: new Date('2025-07-21T15:00:00') },
-    { id: 't3', userId: 'u2', authorName: 'Fernando G.', content: 'La atención al cliente de TuAutoBolivar es excepcional. Me ayudaron en cada paso y resolvieron todas mis dudas.', dateSubmitted: new Date('2025-07-22T09:15:00'), approved: true, approvedBy: 'u1', approvedDate: new Date('2025-07-22T10:00:00') },
-    { id: 't4', userId: 'u3', authorName: 'Carlos M.', content: 'Quiero agradecer a TuAutoBolivar por la excelente experiencia. ¡Mi auto se vendió en menos de una semana!', dateSubmitted: new Date('2025-07-23T11:00:00'), approved: false, approvedBy: null, approvedDate: null },
-    { id: 't5', userId: null, authorName: 'Ana S.', content: 'Plataforma muy útil, encontré el vehículo que buscaba a un buen precio. ¡Gracias!', dateSubmitted: new Date('2025-07-24T16:00:00'), approved: false, approvedBy: null, approvedDate: null }
-];
-
-
 let itemToDelete = { type: null, id: null }; // Store type ('user' or 'vehicle' or 'testimonial') and ID for confirmation modal
-
 let currentVehicleImages = []; // Stores images for the current detailed vehicle
 let currentImageIndex = 0; // Current index of the displayed image in the carousel
-
+let testimonials = [];
 
 /**
  * Shows a specific page and hides all others.
  * Updates navigation visibility based on user role and highlights active link.
  * @param {string} pageId The ID of the page to show.
  * @param {HTMLElement} navElement The navigation link element that was clicked.
+/**
+ * Muestra una página específica y maneja la carga de datos para el panel de admin.
  */
-function showPage(pageId, navElement) {
-    const pages = document.querySelectorAll('.page');
-    pages.forEach(page => {
-        page.classList.add('hidden');
-        page.classList.remove('fade-in');
-    });
-
+async function showPage(pageId, navElement) {
+    document.querySelectorAll('.page').forEach(page => page.classList.add('hidden'));
     const currentPage = document.getElementById(pageId);
     if (currentPage) {
         currentPage.classList.remove('hidden');
         currentPage.classList.add('fade-in');
-        window.scrollTo({ top: 0, behavior: 'smooth' }); // Scroll to top on page change
     }
-
-    // Remove 'active' class from previous active nav link
-    if (currentActiveNav) {
-        currentActiveNav.classList.remove('active');
-    }
-    // Add 'active' class to the current nav link
+    if (currentActiveNav) currentActiveNav.classList.remove('active');
     if (navElement) {
         navElement.classList.add('active');
         currentActiveNav = navElement;
     }
 
-    // Specific logic for userProfile page to pre-fill data
-    if (pageId === 'userProfile' && currentUser) {
-        document.getElementById('profileName').value = currentUser.name;
-        document.getElementById('profileEmail').value = currentUser.email;
-        document.getElementById('profilePhone').value = currentUser.phone || '';
-        document.getElementById('profilePassword').value = ''; // Clear password fields for security
-        document.getElementById('profileConfirmPassword').value = '';
-    }
-
-    // Specific logic for adminPanel to render tables
-    if (pageId === 'adminPanel' && currentUser && (currentUser.role === 'admin' || currentUser.role === 'superadmin')) {
-        renderUsersTable();
+    // --- INICIO DE LA CORRECCIÓN ---
+    if (pageId === 'adminPanel' && currentUser) {
+        // 1. Esperamos a que la lista de usuarios se cargue y se guarde en la variable global.
+        await renderUsersTable();
+        // 2. Ahora que 'users' tiene datos, podemos renderizar las demás tablas sin errores.
         renderAdminVehicleTable();
         renderSiteStatistics();
-        renderAdminTestimonialsTable(); // Render testimonials table in admin panel
+         renderAdminTestimonialsTable(); // Comentado hasta que se implemente
     }
+    // --- FIN DE LA CORRECCIÓN ---
 
-    // Update navigation links based on login status and role
     updateNav();
 }
 
@@ -165,12 +121,12 @@ function displayImage(index) {
     if (currentVehicleImages.length > 0 && index >= 0 && index < currentVehicleImages.length) {
         const imageUrl = currentVehicleImages[index];
         mainImage.src = imageUrl;
-        
+
         // Actualizamos el 'onclick' del botón de ampliar con la URL de la imagen actual
         if (expandBtn) {
             expandBtn.onclick = () => openImageModal(imageUrl);
         }
-        
+
         thumbnails.forEach((thumb, i) => thumb.classList.toggle('active', i === index));
         currentImageIndex = index;
     } else {
@@ -252,6 +208,8 @@ async function testBackendConnection() {
     }
 }
 
+
+
 function renderPublicationCards(publications) {
     const catalogGrid = document.getElementById('vehicle-catalog-grid');
     if (!catalogGrid) return;
@@ -259,47 +217,11 @@ function renderPublicationCards(publications) {
     catalogGrid.innerHTML = ''; // Limpiamos el catálogo
 
     if (!publications || publications.length === 0) {
-        catalogGrid.innerHTML = '<p class="text-center col-span-full text-gray-500">No se encontraron vehículos que coincidan con tu búsqueda.</p>';
+        catalogGrid.innerHTML = '<p class="text-center col-span-full text-gray-500">No se encontraron vehículos.</p>';
         return;
     }
 
-    // Guardamos los datos recibidos para que otras funciones puedan usarlos
-    publicationsData = publications;
-
-    publications.forEach(pub => {
-        const mainImage = pub.imagenes.find(img => img.es_principal);
-        const imageUrl = mainImage ? `${BACKEND_URL}${mainImage.url_imagen}` : 'https://placehold.co/600x400/cccccc/ffffff?text=Sin+Imagen';
-        const publicationCardHTML = `
-            <div class="bg-white rounded-2xl shadow-lg overflow-hidden vehicle-card" onclick="handleVehicleClick(${pub.id_publicacion})">
-                <img src="${imageUrl}" alt="${pub.vehiculo.marca} ${pub.vehiculo.modelo}" class="w-full h-56 object-cover object-center" onerror="this.onerror=null;this.src='https://placehold.co/600x400/cccccc/ffffff?text=Imagen+no+disponible';">
-                <div class="p-6">
-                    <h3 class="font-extrabold text-2xl text-gray-800 mb-2">${pub.vehiculo.marca} ${pub.vehiculo.modelo} <span class="text-gray-500 font-semibold">${pub.vehiculo.año}</span></h3>
-                    <p class="text-green-600 text-xl font-bold mb-4">$${pub.precio.toLocaleString('es-AR')} USD</p>
-                    <p class="text-gray-600 text-base leading-relaxed line-clamp-3">${pub.vehiculo.descripcion}</p>
-                    <button class="mt-6 w-full text-white font-semibold py-3 px-4 rounded-xl btn-accent">Ver Detalles</button>
-                </div>
-            </div>`;
-        catalogGrid.insertAdjacentHTML('beforeend', publicationCardHTML);
-    });
-}
-
-/**
- * Función reutilizable que toma una lista de publicaciones y las dibuja en el catálogo.
- * @param {Array} publications - La lista de publicaciones a mostrar.
- */
-function renderPublicationCards(publications) {
-    const catalogGrid = document.getElementById('vehicle-catalog-grid');
-    if (!catalogGrid) return;
-
-    catalogGrid.innerHTML = ''; // Limpiamos el catálogo
-
-    if (!publications || publications.length === 0) {
-        catalogGrid.innerHTML = '<p class="text-center col-span-full text-gray-500">No se encontraron vehículos que coincidan con tu búsqueda.</p>';
-        return;
-    }
-
-    // Guardamos los datos recibidos para que otras funciones puedan usarlos
-    publicationsData = publications;
+    publicationsData = publications; // Guardamos los datos para que otras funciones los usen
 
     publications.forEach(pub => {
         const mainImage = pub.imagenes.find(img => img.es_principal);
@@ -359,7 +281,7 @@ async function performSearch() {
     const searchTerm = searchInput.value.trim();
 
     // Llevamos al usuario a la sección del catálogo para que vea los resultados
-    showPage('catalog'); 
+    showPage('catalog');
 
     const catalogGrid = document.getElementById('vehicle-catalog-grid');
     if (!catalogGrid) return;
@@ -413,56 +335,55 @@ async function login() {
     const email = document.getElementById('loginEmail').value;
     const password = document.getElementById('loginPassword').value;
 
+    // 1. Preparamos los datos en el formato que espera el backend (form-data)
+    const formData = new URLSearchParams();
+    formData.append('username', email); // El backend espera 'username'
+    formData.append('password', password);
+
     try {
-        // 1. Hacemos una petición POST a nuestro nuevo endpoint de login
-        const response = await fetch(`${API_BASE_URL}/login`, {
+        // 2. Hacemos la primera petición para obtener el token de acceso
+        const tokenResponse = await fetch(`${API_BASE_URL}/login`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            // 2. Enviamos el email y la contraseña en el cuerpo de la petición
-            body: JSON.stringify({
-                email: email,
-                password: password
-            }),
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: formData,
         });
 
-        const data = await response.json();
-
-        if (!response.ok) {
-            // Mostramos el mensaje de error que nos envía el backend
-            throw new Error(data.detail || 'Ocurrió un error desconocido');
+        const tokenData = await tokenResponse.json();
+        if (!tokenResponse.ok) {
+            throw new Error(tokenData.detail || 'Ocurrió un error desconocido');
         }
 
-        // 5. Si el login es exitoso, guardamos los datos del usuario en currentUser
+        // 3. Guardamos el token que recibimos
+        const token = tokenData.access_token;
+
+        // 4. Usamos el token para hacer una segunda petición y obtener los datos del usuario
+        const profileResponse = await fetch(`${API_BASE_URL}/users/me`, {
+            headers: {
+                // Enviamos el token en la cabecera de autorización
+                'Authorization': `Bearer ${token}`
+            }
+        });
+
+        if (!profileResponse.ok) {
+            throw new Error('No se pudo obtener el perfil del usuario después del login.');
+        }
+
+        const userData = await profileResponse.json();
+
+        // 5. Ahora sí, guardamos los datos reales del usuario en nuestra variable global
         currentUser = {
-            id: data.id,
-            name: data.name,
-            email: data.email,
-            phone: data.phone,
-            role: data.role
+            id: userData.id,
+            name: userData.name,
+            email: userData.email,
+            phone: userData.phone,
+            role: userData.role,
+            token: token // Guardamos el token para futuras peticiones
         };
 
-        // --- LÓGICA FUSIONADA ---
-        // Asumimos que el backend devuelve estos campos. 
-        // Si no lo hace, estas variables serán 'undefined' y la condición no se cumplirá.
-        const lastModifiedByAdmin = data.lastModifiedByAdmin;
-        const lastLoginTime = data.lastLoginTime;
-        const adminModifiedFields = data.adminModifiedFields;
-
-        // 6. Verificamos si el admin modificó el perfil del usuario
-        if (lastModifiedByAdmin > lastLoginTime) {
-            // Si es así, mostramos la alerta de actualización obligatoria
-            showMandatoryProfileUpdateAlert(adminModifiedFields);
-        } else {
-            // Si no, procedemos con el login normal
-            // En una app real, el backend actualizaría 'lastLoginTime' en la DB.
-            alert(`¡Bienvenido, ${currentUser.name}!`);
-            showPage('catalog', document.querySelector('.nav-btn[onclick*="catalog"]'));
-        }
+        alert(`¡Bienvenido, ${currentUser.name}!`);
+        showPage('catalog', document.querySelector('.nav-btn[onclick*="catalog"]'));
 
     } catch (error) {
-        // Si algo falla, mostramos el error al usuario
         console.error('Error en el login:', error);
         alert(`Error: ${error.message}`);
     }
@@ -531,34 +452,34 @@ async function updateUserProfile() {
         return;
     }
 
-    const name = document.getElementById('profileName').value;
-    const email = document.getElementById('profileEmail').value;
-    const phone = document.getElementById('profilePhone').value;
-    const password = document.getElementById('profilePassword').value;
-    const confirmPassword = document.getElementById('profileConfirmPassword').value;
+    const newName = document.getElementById('profileName').value;
+    const newEmail = document.getElementById('profileEmail').value;
+    const newPhone = document.getElementById('profilePhone').value;
+    const newPassword = document.getElementById('profilePassword').value;
+    const newConfirmPassword = document.getElementById('profileConfirmPassword').value;
 
-    // Validación de la contraseña
-    if (password && password !== confirmPassword) {
+    if (newPassword && newPassword !== newConfirmPassword) {
         alert("Las nuevas contraseñas no coinciden.");
         return;
     }
 
-    // Creamos el objeto con los datos a enviar
     const updateData = {
-        name: name,
-        email: email,
-        phone: phone,
+        name: newName,
+        email: newEmail,
+        phone: newPhone,
     };
 
-    // Solo incluimos la contraseña en la petición si el usuario escribió una nueva
-    if (password) {
-        updateData.password = password;
+    if (newPassword) {
+        updateData.password = newPassword;
     }
 
     try {
         const response = await fetch(`${API_BASE_URL}/users/${currentUser.id}`, {
             method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${currentUser.token}` // <-- Enviamos el token
+            },
             body: JSON.stringify(updateData),
         });
 
@@ -568,12 +489,12 @@ async function updateUserProfile() {
         }
 
         const updatedUser = await response.json();
-
-        // Actualizamos la variable global currentUser con los nuevos datos
-        currentUser = updatedUser;
+        // Actualizamos la variable global, pero manteniendo el token
+        currentUser = { ...updatedUser, token: currentUser.token }; 
 
         alert('¡Perfil actualizado con éxito!');
-        // Opcional: Redirigir a otra página o simplemente quedarse en el perfil
+        document.getElementById('profilePassword').value = '';
+        document.getElementById('profileConfirmPassword').value = '';
         showPage('catalog', document.querySelector('.nav-btn[onclick*="catalog"]'));
 
     } catch (error) {
@@ -634,24 +555,16 @@ function updateNav() {
  * Shows the "Publish/Edit Vehicle" page, setting it up for publishing a new vehicle.
  */
 function showPublishVehiclePage() {
-    document.getElementById('publishEditTitle').textContent = 'Publicar Nuevo Vehículo';
-    document.getElementById('saveVehicleButton').textContent = 'Publicar Vehículo';
-    document.getElementById('vehicleId').value = ''; // Clear ID for new vehicle
-    // Clear form fields
-    document.getElementById('vehicleBrand').value = '';
-    document.getElementById('vehicleModel').value = '';
-    document.getElementById('vehicleYear').value = '';
-    document.getElementById('vehiclePrice').value = '';
-    document.getElementById('vehicleCondition').value = '';
-    document.getElementById('vehicleFuelType').value = '';
-    document.getElementById('vehicleMileage').value = '';
-    document.getElementById('vehicleCarType').value = '';
-    document.getElementById('vehicleTransmission').value = '';
-    document.getElementById('vehicleContactPhone').value = ''; // Clear new phone field
-    document.getElementById('vehicleDescription').value = '';
-    // Note: File input value cannot be programmatically cleared for security reasons.
-    // A common workaround is to reset the form or replace the input.
-
+    const form = document.getElementById('publishVehicleForm');
+    if (form) form.reset();
+    publicationImageFiles = [];
+    renderImagePreview();
+    const title = document.getElementById('publishEditTitle');
+    if (title) title.textContent = 'Publicar Nuevo Vehículo';
+    const button = document.getElementById('saveVehicleButton');
+    if (button) button.textContent = 'Publicar Vehículo';
+    const idInput = document.getElementById('vehicleId');
+    if (idInput) idInput.value = '';
     showPage('publishVehicle', document.getElementById('publishVehicleNav'));
 }
 
@@ -664,10 +577,8 @@ async function saveVehicle() {
         alert('Debes iniciar sesión para realizar esta acción.');
         return;
     }
-
     const publicationId = document.getElementById('vehicleId').value;
     const isEditing = !!publicationId;
-
     const formData = new FormData();
     formData.append('marca', document.getElementById('vehicleBrand').value);
     formData.append('modelo', document.getElementById('vehicleModel').value);
@@ -680,55 +591,35 @@ async function saveVehicle() {
     formData.append('descripcion', document.getElementById('vehicleDescription').value);
     formData.append('precio', document.getElementById('vehiclePrice').value);
     formData.append('telefono_contacto', document.getElementById('vehicleContactPhone').value);
-
     if (!isEditing) {
         formData.append('id_usuario', currentUser.id);
     }
 
-    // --- INICIO DE LA CORRECCIÓN ---
-    // En lugar de leer del input, usamos nuestro array global 'publicationImageFiles'.
-    if (!isEditing && publicationImageFiles.length === 0) {
+    // Usamos el nuevo array de imágenes
+    if (publicationImageFiles.length === 0) {
         alert('Por favor, añade al menos una imagen para el vehículo.');
         return;
     }
-
-    if (publicationImageFiles.length > 0) {
-        publicationImageFiles.forEach(file => {
-            formData.append('images', file);
-        });
-    }
-    // --- FIN DE LA CORRECCIÓN ---
+    publicationImageFiles.forEach(file => {
+        formData.append('images', file);
+    });
 
     const method = isEditing ? 'PUT' : 'POST';
-    const url = isEditing
-        ? `${API_BASE_URL}/publications/${publicationId}`
-        : `${API_BASE_URL}/publications/upload`;
-
+    const url = isEditing ? `${API_BASE_URL}/publications/${publicationId}` : `${API_BASE_URL}/publications/upload`;
     try {
-        const response = await fetch(url, {
-            method: method,
-            body: formData,
-        });
-
+        const response = await fetch(url, { method: method, body: formData });
         const result = await response.json();
-        if (!response.ok) {
-            throw new Error(result.detail || 'Ocurrió un error al guardar la publicación.');
-        }
-
-        alert(isEditing ? '¡Publicación actualizada con éxito!' : result.message);
-
+        if (!response.ok) throw new Error(result.detail || 'Ocurrió un error');
+        alert(isEditing ? '¡Publicación actualizada!' : result.message);
         document.getElementById('publishVehicleForm').reset();
         publicationImageFiles = [];
         renderImagePreview();
-
         fetchAndRenderPublications();
-
         if (currentUser.role === 'admin' || currentUser.role === 'superadmin') {
             showPage('adminPanel');
         } else {
             showPage('myVehicles', document.getElementById('myVehiclesNav'));
         }
-
     } catch (error) {
         console.error('Error al guardar la publicación:', error);
         alert(`Error: ${error.message}`);
@@ -817,49 +708,71 @@ async function renderMyVehicles() {
 /**
  * Carga la lista de todos los usuarios desde la API y la muestra en la tabla de admin.
  */
+/**
+ * Carga la lista de todos los usuarios desde la API, la guarda globalmente,
+ * y la muestra en la tabla de admin.
+ */
+/**
+ * Carga la lista de usuarios desde la API, la guarda globalmente,
+ * y la muestra en la tabla de admin.
+ */
 async function renderUsersTable() {
     const tableBody = document.getElementById('usersTableBody');
-    if (!tableBody) return;
+    if (!tableBody || !currentUser?.token) return;
+
     tableBody.innerHTML = '<tr><td colspan="6" class="text-center p-4 text-gray-500">Cargando usuarios...</td></tr>';
+
     try {
-        const response = await fetch(`${API_BASE_URL}/users`);
+        const response = await fetch(`${API_BASE_URL}/users`, {
+            headers: { 'Authorization': `Bearer ${currentUser.token}` }
+        });
         if (!response.ok) throw new Error('No se pudo cargar la lista de usuarios.');
-        const usersList = await response.json();
         
-        // ¡CORRECCIÓN CLAVE! Guardamos la lista de usuarios en la variable global
-        // para que otras funciones como 'openEditUserModal' puedan usarla.
-        users = usersList; 
+        const usersList = await response.json();
+        users = usersList; // Actualizamos la caché local de usuarios
 
         if (usersList.length === 0) {
             tableBody.innerHTML = '<tr><td colspan="6" class="text-center p-4 text-gray-500">No hay usuarios registrados.</td></tr>';
             return;
         }
+
         let tableHtml = '';
         usersList.forEach(user => {
-            const isSelf = currentUser && currentUser.id === user.id_usuario;
+            const isSelf = currentUser.id === user.id_usuario;
             const userRole = user.roles.length > 0 ? user.roles[0].nombre : 'N/A';
-            const isSuperAdmin = userRole === 'superadmin';
+            const isTargetSuperAdmin = userRole === 'superadmin';
+            const isTargetAdmin = userRole === 'admin';
+
+            // --- Lógica de Permisos para los Botones ---
+            const canEdit = (currentUser.role === 'superadmin' && !isTargetSuperAdmin && !isSelf) || (currentUser.role === 'admin' && userRole === 'user');
+            const canChangeRole = currentUser.role === 'superadmin' && !isTargetSuperAdmin && !isSelf;
+            const canToggleStatus = (currentUser.role === 'superadmin' && !isTargetSuperAdmin && !isSelf) || (currentUser.role === 'admin' && userRole === 'user');
+            const canDelete = (currentUser.role === 'superadmin' && !isTargetSuperAdmin && !isSelf) || (currentUser.role === 'admin' && userRole === 'user');
+            // --- Fin de la Lógica de Permisos ---
+
             tableHtml += `
                 <tr id="user-row-${user.id_usuario}">
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${user.nombre}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${user.email}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${user.telefono || 'N/A'}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm font-bold ${isSuperAdmin ? 'text-red-600' : 'text-gray-500'}">${userRole}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${user.activo ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">${user.activo ? 'Activo' : 'Inactivo'}</span>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-bold ${isTargetSuperAdmin ? 'text-red-600' : ''}">${userRole}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${user.activo ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
+                            ${user.activo ? 'Activo' : 'Inactivo'}
+                        </span>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <!-- BOTÓN DE EDITAR AÑADIDO -->
-                        <button class="text-blue-600 hover:text-blue-900 mr-4" onclick="openEditUserModal(${user.id_usuario})">Editar</button>
-                        <button class="${isSuperAdmin || isSelf ? 'text-gray-400 cursor-not-allowed' : 'text-indigo-600 hover:text-indigo-900'} mr-4" ${isSuperAdmin || isSelf ? 'disabled' : ''} onclick="changeUserRole(${user.id_usuario}, '${user.nombre}')">Rol</button>
-                        <button class="${isSuperAdmin || isSelf ? 'text-gray-400 cursor-not-allowed' : 'text-orange-600 hover:text-orange-900'}" ${isSuperAdmin || isSelf ? 'disabled' : ''} onclick="toggleUserStatus(${user.id_usuario})">${user.activo ? 'Desactivar' : 'Activar'}</button>
+                        ${canEdit ? `<button class="text-blue-600 hover:text-blue-900 mr-4" onclick="openEditUserModal(${user.id_usuario})">Editar</button>` : ''}
+                        ${canChangeRole ? `<button class="text-indigo-600 hover:text-indigo-900 mr-4" onclick="changeUserRole(${user.id_usuario}, '${user.nombre}')">Rol</button>` : ''}
+                        ${canToggleStatus ? `<button class="text-orange-600 hover:text-orange-900 mr-4" onclick="toggleUserStatus(${user.id_usuario})">${user.activo ? 'Desactivar' : 'Activar'}</button>` : ''}
+                        ${canDelete ? `<button class="text-red-600 hover:text-red-900" onclick="deleteUser(${user.id_usuario}, '${user.nombre}')">Eliminar</button>` : ''}
                     </td>
                 </tr>`;
         });
         tableBody.innerHTML = tableHtml;
     } catch (error) {
         console.error("Error al renderizar la tabla de usuarios:", error);
-        tableBody.innerHTML = '<tr><td colspan="6" class="text-center p-4 text-red-500">No se pudo cargar la lista.</td></tr>';
+        tableBody.innerHTML = '<tr><td colspan="6" class="text-center p-4 text-red-500">No tienes permiso para ver esta sección.</td></tr>';
     }
 }
 
@@ -890,43 +803,44 @@ async function saveEditedUser() {
         phone: document.getElementById('editUserPhone').value,
     };
 
-    // Leer contraseña (opcional) y validarla
+    // --- INICIO DE LA CORRECCIÓN ---
+    // Leemos los campos de contraseña del modal
     const password = document.getElementById('editUserPassword')?.value || '';
     const confirm = document.getElementById('editUserConfirmPassword')?.value || '';
+
+    // Si se escribió algo en los campos de contraseña, validamos y añadimos
     if (password) {
         if (password !== confirm) {
             alert('Las contraseñas no coinciden.');
-            return;
+            return; // Detenemos la ejecución si no coinciden
         }
-        updateData.password = password; // se enviará al backend y será hasheada allí
+        updateData.password = password; // Añadimos la nueva contraseña a los datos a enviar
+    }
+    // --- FIN DE LA CORRECCIÓN ---
+
+    if (!currentUser?.token) {
+        alert("Error de autenticación. Por favor, inicia sesión de nuevo.");
+        return;
     }
 
     try {
-        const response = await fetch(`${API_BASE_URL}/users/${userId}`, {
+        const response = await fetch(`${API_BASE_URL}/admin/users/${userId}`, {
             method: 'PUT',
-            headers: { 'Content-Type': 'application/json' 
-                // Si tu backend requiere autenticación agrega Authorization: `Bearer ${token}`
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${currentUser.token}`
             },
             body: JSON.stringify(updateData),
         });
 
-        // Intentamos leer JSON si viene; si no, leemos texto plano
-        let resBody;
-        try { resBody = await response.json(); } catch (e) { resBody = await response.text().catch(()=>null); }
-
         if (!response.ok) {
-            const msg = resBody?.detail || resBody || `Error ${response.status}`;
-            throw new Error(msg);
+            const errorData = await response.json();
+            throw new Error(errorData.detail || `Error ${response.status}`);
         }
 
         alert('Usuario actualizado con éxito.');
-
-        // Limpiar campos sensibles del modal
-        if (document.getElementById('editUserPassword')) document.getElementById('editUserPassword').value = '';
-        if (document.getElementById('editUserConfirmPassword')) document.getElementById('editUserConfirmPassword').value = '';
-
         hideEditUserModal();
-        renderUsersTable(); // Recargar la tabla para ver cambios
+        renderUsersTable(); // Recargamos la tabla para ver los cambios
 
     } catch (error) {
         console.error('Error al guardar el usuario:', error);
@@ -949,12 +863,13 @@ async function toggleUserStatus(userId) {
     try {
         const response = await fetch(`${API_BASE_URL}/users/${userId}/toggle-status`, {
             method: 'PATCH',
+            headers: { 'Authorization': `Bearer ${currentUser.token}` }
         });
         if (!response.ok) {
             const errorData = await response.json();
-            throw new Error(errorData.detail || 'No se pudo cambiar el estado del usuario.');
+            throw new Error(errorData.detail || 'No se pudo cambiar el estado.');
         }
-        alert('Estado del usuario actualizado con éxito.');
+        alert('Estado del usuario actualizado.');
         renderUsersTable();
     } catch (error) {
         console.error('Error al cambiar el estado del usuario:', error);
@@ -966,22 +881,25 @@ async function toggleUserStatus(userId) {
  * Pide un nuevo rol y se conecta al backend para cambiarlo.
  */
 async function changeUserRole(userId, userName) {
-    const newRole = prompt(`Introduce el nuevo rol para "${userName}" (puedes escribir 'admin' o 'user'):`);
+    const newRole = prompt(`Introduce el nuevo rol para "${userName}" ('admin' o 'user'):`);
     if (!newRole || (newRole.toLowerCase() !== 'admin' && newRole.toLowerCase() !== 'user')) {
-        alert("Operación cancelada o rol inválido. Por favor, introduce 'admin' o 'user'.");
+        alert("Operación cancelada o rol inválido.");
         return;
     }
     try {
         const response = await fetch(`${API_BASE_URL}/users/${userId}/role`, {
             method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${currentUser.token}`
+            },
             body: JSON.stringify({ new_role: newRole.toLowerCase() }),
         });
         if (!response.ok) {
             const errorData = await response.json();
-            throw new Error(errorData.detail || 'No se pudo cambiar el rol del usuario.');
+            throw new Error(errorData.detail || 'No se pudo cambiar el rol.');
         }
-        alert('Rol del usuario actualizado con éxito.');
+        alert('Rol del usuario actualizado.');
         renderUsersTable();
     } catch (error) {
         console.error('Error al cambiar el rol del usuario:', error);
@@ -993,11 +911,12 @@ async function changeUserRole(userId, userName) {
  * Se conecta al backend para eliminar un usuario.
  */
 async function deleteUser(userId, userName) {
-    const confirmation = confirm(`¿Estás seguro de que quieres eliminar permanentemente al usuario "${userName}"? Todas sus publicaciones también serán eliminadas.`);
+    const confirmation = confirm(`¿Seguro que quieres eliminar a "${userName}"?`);
     if (!confirmation) return;
     try {
         const response = await fetch(`${API_BASE_URL}/users/${userId}`, {
             method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${currentUser.token}` }
         });
         if (!response.ok) {
             const errorData = await response.json();
@@ -1394,7 +1313,7 @@ async function updateUserProfile() {
         currentUser = updatedUser;
 
         alert('¡Perfil actualizado con éxito!');
-        
+
         // Limpiamos los campos de contraseña por seguridad
         document.getElementById('profilePassword').value = '';
         document.getElementById('profileConfirmPassword').value = '';
@@ -1415,147 +1334,223 @@ async function updateUserProfile() {
  * Shows the testimonial submission modal.
  */
 function showTestimonialModal() {
-    // Pre-fill testimonial author if user is logged in
-    if (currentUser) {
-        document.getElementById('testimonialAuthor').value = currentUser.name;
-    } else {
-        document.getElementById('testimonialAuthor').value = ''; // Clear if not logged in
+    if (!currentUser) {
+        alert("Debes iniciar sesión para dejar un testimonio.");
+        showPage('login'); // Llevamos al usuario a iniciar sesión
+        return;
     }
-    document.getElementById('testimonialContent').value = ''; // Clear content
-    document.getElementById('testimonialModal').classList.add('show');
+    
+    const modal = document.getElementById('testimonialModal');
+    const authorInput = document.getElementById('testimonialAuthor');
+    
+    // Rellenamos automáticamente el nombre del usuario logueado
+    if (authorInput) {
+        authorInput.value = currentUser.name;
+    }
+    
+    if (modal) {
+        modal.classList.add('show');
+    }
 }
 
 /**
  * Hides the testimonial submission modal.
  */
 function hideTestimonialModal() {
-    document.getElementById('testimonialModal').classList.remove('show');
+    const modal = document.getElementById('testimonialModal');
+    if (modal) {
+        modal.classList.remove('show');
+    }
 }
 
 /**
  * Submits a new testimonial.
  */
-function submitTestimonial() {
-    const authorName = document.getElementById('testimonialAuthor').value;
-    const content = document.getElementById('testimonialContent').value;
-
-    if (!authorName || !content) {
-        alert('Por favor, completa todos los campos del testimonio.');
+async function submitTestimonial() {
+    if (!currentUser) {
+        alert("Debes iniciar sesión para enviar un testimonio.");
         return;
     }
 
-    const newId = 't' + (testimonials.length > 0 ? Math.max(...testimonials.map(t => parseInt(t.id.substring(1)))) + 1 : 1);
-    const newTestimonial = {
-        id: newId,
-        userId: currentUser ? currentUser.id : null, // Link to user if logged in
-        authorName: authorName,
-        content: content,
-        dateSubmitted: new Date(),
-        approved: false, // Must be approved by admin
-        approvedBy: null,
-        approvedDate: null
-    };
+    const contentElement = document.getElementById('testimonialContent');
+    const content = contentElement.value.trim();
 
-    testimonials.push(newTestimonial);
-    alert('¡Testimonio enviado con éxito! Será visible una vez que sea aprobado por un administrador.');
-    hideTestimonialModal(); // Hide the modal after submission
-    renderAdminTestimonialsTable(); // Update admin view immediately
+    if (!content) {
+        alert("Por favor, escribe tu testimonio antes de enviarlo.");
+        return;
+    }
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/testimonials`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${currentUser.token}`
+            },
+            body: JSON.stringify({ contenido: content }),
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.detail || 'No se pudo enviar el testimonio.');
+        }
+
+        alert('¡Gracias por tu testimonio! Será revisado por un administrador antes de ser publicado.');
+        contentElement.value = ''; // Limpiamos el campo de texto
+
+    } catch (error) {
+        console.error('Error al enviar el testimonio:', error);
+        alert(`Error: ${error.message}`);
+    }
+}
+
+async function fetchAndRenderApprovedTestimonials() {
+    const container = document.getElementById('approvedTestimonialsList');
+    const noMessage = document.getElementById('noTestimonialsMessage');
+    if (!container) return;
+
+    // Mostrar mensaje de carga
+    container.innerHTML = '<p class="text-center text-gray-500 col-span-full">Cargando testimonios...</p>';
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/testimonials/approved`);
+        if (!response.ok) throw new Error("No se pudieron cargar los testimonios");
+        const testimonials = await response.json();
+
+        if (testimonials.length === 0) {
+            container.innerHTML = '<p class="text-center text-gray-600 col-span-full">No hay testimonios aprobados aún.</p>';
+            return;
+        }
+
+        container.innerHTML = ''; // Limpiar
+        testimonials.forEach(t => {
+            const card = `
+                <div class="bg-gray-50 rounded-2xl shadow-md p-6 hover:shadow-lg transition">
+                    <p class="text-gray-700 italic mb-4">"${t.contenido}"</p>
+                    <p class="text-gray-900 font-bold text-right">- ${t.autor_nombre}</p>
+                </div>
+            `;
+            container.insertAdjacentHTML('beforeend', card);
+        });
+    } catch (error) {
+        console.error("Error al cargar testimonios:", error);
+        container.innerHTML = '<p class="text-center text-red-500 col-span-full">Error al cargar testimonios.</p>';
+    }
+}
+
+
+async function renderAdminTestimonialsTable() {
+    const tableBody = document.getElementById('adminTestimonialsTableBody');
+    if (!tableBody || !currentUser?.token) return;
+
+    tableBody.innerHTML = '<tr><td colspan="5" class="text-center p-4 text-gray-500">Cargando testimonios...</td></tr>';
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/admin/testimonials`, {
+            headers: { 'Authorization': `Bearer ${currentUser.token}` }
+        });
+        if (!response.ok) throw new Error('No se pudo cargar la lista de testimonios.');
+        const allTestimonials = await response.json();
+
+        if (allTestimonials.length === 0) {
+            tableBody.innerHTML = '<tr><td colspan="5" class="text-center p-4 text-gray-500">No hay testimonios para moderar.</td></tr>';
+            return;
+        }
+
+        let tableHtml = '';
+        allTestimonials.forEach(t => {
+            tableHtml += `
+                <tr id="testimonial-row-${t.id_testimonio}">
+                    <td class="px-6 py-4">${t.autor_nombre}</td>
+                    <td class="px-6 py-4 text-sm text-gray-500">${t.contenido}</td>
+                    <td class="px-6 py-4 text-sm text-gray-500">${new Date(t.fecha).toLocaleDateString()}</td>
+                    <td class="px-6 py-4"><span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${t.aprobado ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}">${t.aprobado ? 'Aprobado' : 'Pendiente'}</span></td>
+                    <td class="px-6 py-4 text-right">
+                        ${!t.aprobado ? `<button class="text-green-600 hover:text-green-900 mr-4" onclick="approveTestimonial(${t.id_testimonio})">Aprobar</button>` : ''}
+                        <button class="text-red-600 hover:text-red-900" onclick="deleteTestimonial(${t.id_testimonio})">Eliminar</button>
+                    </td>
+                </tr>`;
+        });
+        tableBody.innerHTML = tableHtml;
+    } catch (error) {
+        console.error("Error al renderizar la tabla de testimonios:", error);
+        tableBody.innerHTML = '<tr><td colspan="5" class="text-center p-4 text-red-500">No se pudo cargar la lista.</td></tr>';
+    }
+}
+
+async function deleteTestimonial(testimonialId) {
+    if (!confirm("¿Seguro que quieres eliminar este testimonio permanentemente?")) return;
+    try {
+        const response = await fetch(`${API_BASE_URL}/admin/testimonials/${testimonialId}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${currentUser.token}` }
+        });
+        if (!response.ok) throw new Error('No se pudo eliminar el testimonio.');
+        alert('Testimonio eliminado con éxito.');
+        renderAdminTestimonialsTable(); 
+        renderApprovedTestimonials(); 
+    } catch (error) {
+        alert(`Error: ${error.message}`);
+    }
 }
 
 /**
  * Renders the list of approved testimonials on the public section.
  */
-function renderApprovedTestimonials() {
-    const approvedTestimonialsList = document.getElementById('approvedTestimonialsList');
-    const approved = testimonials.filter(t => t.approved);
+async function renderApprovedTestimonials() {
+    const container = document.getElementById('testimonialsContainer');
+    if (!container) return;
 
-    if (approved.length === 0) {
-        approvedTestimonialsList.innerHTML = '<p class="text-center text-gray-600 col-span-full" id="noTestimonialsMessage">No hay testimonios aprobados aún.</p>';
-        return;
+    container.innerHTML = '<p class="text-center text-gray-600 col-span-full">Cargando testimonios...</p>';
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/testimonials/approved`);
+        if (!response.ok) throw new Error('No se pudieron cargar los testimonios.');
+        
+        const approvedTestimonials = await response.json();
+        container.innerHTML = '';
+
+        if (approvedTestimonials.length === 0) {
+            container.innerHTML = '<p class="text-center text-gray-600 col-span-full">No hay testimonios disponibles en este momento.</p>';
+            return;
+        }
+
+        approvedTestimonials.forEach(testimonial => {
+            const card = `
+                <div class="bg-white p-8 rounded-2xl shadow-lg">
+                    <p class="text-gray-600 text-lg mb-6">"${testimonial.contenido}"</p>
+                    <p class="text-gray-900 font-bold text-xl">${testimonial.autor_nombre}</p>
+                </div>`;
+            container.insertAdjacentHTML('beforeend', card);
+        });
+    } catch (error) {
+        console.error("Error al cargar testimonios:", error);
+        container.innerHTML = '<p class="text-center text-red-500 col-span-full">No se pudieron cargar los testimonios.</p>';
     }
-
-    let html = '';
-    approved.forEach(t => {
-        html += `
-            <div class="bg-gray-50 rounded-xl p-6 shadow-md border border-gray-100">
-                <p class="text-gray-700 text-lg italic mb-4">"${t.content}"</p>
-                <p class="font-bold text-gray-900">- ${t.authorName}</p>
-                <p class="text-gray-500 text-sm mt-1">${t.dateSubmitted.toLocaleDateString()}</p>
-            </div>
-        `;
-    });
-    approvedTestimonialsList.innerHTML = html;
 }
 
 /**
  * Renders the testimonials table in the admin panel.
  */
-function renderAdminTestimonialsTable() {
-    const adminTestimonialsTableBody = document.getElementById('adminTestimonialsTableBody');
-    let tableHtml = '';
 
-    if (testimonials.length === 0) {
-        adminTestimonialsTableBody.innerHTML = '<tr><td colspan="5" class="px-6 py-4 text-center text-gray-600">No hay testimonios para gestionar.</td></tr>';
-        return;
-    }
-
-    testimonials.forEach(t => {
-        const isApproved = t.approved;
-        const statusClass = isApproved ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800';
-        const statusText = isApproved ? 'Aprobado' : 'Pendiente';
-        const buttonHtml = isApproved ?
-            `<button class="inline-flex items-center text-red-600 hover:text-red-800 transform hover:scale-105 transition-transform duration-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50 rounded-md px-2 py-1" onclick="showConfirmationModal('testimonial', '${t.id}')">
-                <i class="fas fa-trash-alt mr-1"></i> Eliminar
-            </button>` :
-            `<button class="inline-flex items-center text-green-600 hover:text-green-800 mr-4 transform hover:scale-105 transition-transform duration-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50 rounded-md px-2 py-1" onclick="approveTestimonial('${t.id}')">
-                <i class="fas fa-check-circle mr-1"></i> Aprobar
-            </button>
-            <button class="inline-flex items-center text-red-600 hover:text-red-800 transform hover:scale-105 transition-transform duration-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50 rounded-md px-2 py-1" onclick="showConfirmationModal('testimonial', '${t.id}')">
-                <i class="fas fa-trash-alt mr-1"></i> Eliminar
-            </button>`;
-
-        tableHtml += `
-            <tr class="hover:bg-gray-50 transition-colors duration-200">
-                <td class="px-6 py-4 whitespace-nowrap text-base font-medium text-gray-900">
-                    ${t.authorName}
-                </td>
-                <td class="px-6 py-4 text-base text-gray-700 max-w-xs truncate">
-                    ${t.content}
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap text-base text-gray-700">
-                    ${t.dateSubmitted.toLocaleDateString()}
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap text-base text-gray-700">
-                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${statusClass}">
-                        ${statusText}
-                    </span>
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap text-right text-base font-medium">
-                    ${buttonHtml}
-                </td>
-            </tr>
-        `;
-    });
-    adminTestimonialsTableBody.innerHTML = tableHtml;
-}
 
 /**
  * Approves a testimonial.
  * @param {string} testimonialId The ID of the testimonial to approve.
  */
-function approveTestimonial(testimonialId) {
-    if (currentUser && (currentUser.role === 'admin' || currentUser.role === 'superadmin')) {
-        const testimonial = testimonials.find(t => t.id === testimonialId);
-        if (testimonial) {
-            testimonial.approved = true;
-            testimonial.approvedBy = currentUser.id;
-            testimonial.approvedDate = new Date();
-            alert('Testimonio aprobado con éxito.');
-            renderAdminTestimonialsTable(); // Re-render admin table
-            renderApprovedTestimonials(); // Update public display
-        }
-    } else {
-        alert('No tienes permiso para aprobar testimonios.');
+async function approveTestimonial(testimonialId) {
+    if (!confirm("¿Seguro que quieres aprobar este testimonio?")) return;
+    try {
+        const response = await fetch(`${API_BASE_URL}/admin/testimonials/${testimonialId}/approve`, {
+            method: 'PATCH',
+            headers: { 'Authorization': `Bearer ${currentUser.token}` }
+        });
+        if (!response.ok) throw new Error('No se pudo aprobar el testimonio.');
+        alert('Testimonio aprobado con éxito.');
+        renderAdminTestimonialsTable(); 
+        renderApprovedTestimonials(); 
+    } catch (error) {
+        alert(`Error: ${error.message}`);
     }
 }
 
@@ -1586,6 +1581,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 2. Cargamos las publicaciones del catálogo desde la API y las mostramos.
     fetchAndRenderPublications();
+    fetchAndRenderApprovedTestimonials();
 
     // 3. Renderizamos los testimonios (usando tu función original).
     renderApprovedTestimonials();
@@ -1639,18 +1635,11 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderImagePreview() {
         const previewContainer = document.getElementById('imagePreviewContainer');
         if (!previewContainer) return;
-
-        // Limpiamos el contenido anterior.
         previewContainer.innerHTML = '';
-
-        // Si no quedan imágenes en la lista...
         if (publicationImageFiles.length === 0) {
-            // ...volvemos a crear el mensaje de "no hay imágenes" directamente.
             previewContainer.innerHTML = '<p id="noImagesText" class="text-gray-500">Aún no has añadido ninguna imagen.</p>';
             return;
         }
-
-        // Si hay imágenes, las dibujamos una por una.
         publicationImageFiles.forEach((file, index) => {
             const reader = new FileReader();
             reader.onload = function (e) {
@@ -1660,16 +1649,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 wrapper.innerHTML = `
                 <img src="${e.target.result}" alt="${file.name}" class="w-full h-full object-cover rounded-md">
                 <div class="preview-image-actions">
-                    <button title="Eliminar imagen" class="preview-action-btn" onclick="removeImage(${index})">
-                        <i class="fas fa-trash-alt"></i>
-                    </button>
-                    ${!isPrimary ? `
-                    <button title="Hacer principal" class="preview-action-btn" onclick="setPrimaryImage(${index})">
-                        <i class="fas fa-star"></i>
-                    </button>
-                    ` : ''}
-                </div>
-            `;
+                    <button title="Eliminar imagen" class="preview-action-btn" onclick="removeImage(${index})"><i class="fas fa-trash-alt"></i></button>
+                    ${!isPrimary ? `<button title="Hacer principal" class="preview-action-btn" onclick="setPrimaryImage(${index})"><i class="fas fa-star"></i></button>` : ''}
+                </div>`;
                 previewContainer.appendChild(wrapper);
             }
             reader.readAsDataURL(file);
@@ -1705,7 +1687,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             publicationImageFiles.push(file);
             renderImagePreview();
-            input.value = ''; // Reseteamos el input
+            input.value = '';
         } else {
             alert("Primero selecciona una foto para añadir.");
         }
@@ -1756,7 +1738,7 @@ document.addEventListener('DOMContentLoaded', () => {
     window.previewImages = previewImages;
     // Exponer funciones usadas por atributos inline (onclick) y llamadas externas
     window.addImageToList = addImageToList;
-       window.removeImage = removeImage;
+    window.removeImage = removeImage;
     window.setPrimaryImage = setPrimaryImage;
     window.renderImagePreview = renderImagePreview;
     // Hacer accesible la función de desactivar cuenta desde HTML onclick
