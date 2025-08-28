@@ -1,0 +1,15 @@
+# Archivos de configuración de IDE/Editor
+.vscode/
+.idea/
+*.swp
+
+# Archivos de sistema operativo
+.DS_Store
+Thumbs.db
+
+# Archivos de entorno (si alguna vez los usas)
+.env
+.env.*
+
+# Dependencias de Node (aunque no las uses ahora, es una buena práctica)
+node_modules/
