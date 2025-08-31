@@ -1728,42 +1728,49 @@ document.addEventListener('DOMContentLoaded', () => {
      * Inicia el proceso para que un usuario desactive su propia cuenta (soft delete).
      */
     async function deactivateOwnAccount() {
-        if (!currentUser) {
-            alert("Debes estar logueado para realizar esta acción.");
-            return;
-        }
-
-        const confirmation = confirm(
-            "¿Estás seguro de que quieres desactivar tu cuenta?\n\n" +
-            "Tus publicaciones se ocultarán y no podrás iniciar sesión. " +
-            "Un administrador podrá reactivar tu cuenta en el futuro si lo solicitas."
-        );
-
-        if (!confirmation) {
-            return;
-        }
-
-        try {
-            const response = await fetch(`${API_BASE_URL}/users/${currentUser.id}/deactivate`, {
-                method: 'PATCH',
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.detail || 'No se pudo desactivar la cuenta.');
-            }
-
-            const result = await response.json();
-            alert(result.message);
-
-            // Después de desactivar la cuenta, cerramos la sesión.
-            logout();
-
-        } catch (error) {
-            console.error('Error al desactivar la cuenta:', error);
-            alert(`Error: ${error.message}`);
-        }
+    // 1. Verificamos que el usuario esté logueado Y que tengamos su token.
+    if (!currentUser || !currentUser.token) {
+        alert("Debes estar logueado para realizar esta acción.");
+        return;
     }
+
+    const confirmation = confirm(
+        "¿Estás seguro de que quieres desactivar tu cuenta?\n\n" +
+        "Tus publicaciones se ocultarán y no podrás iniciar sesión. " +
+        "Un administrador podrá reactivar tu cuenta en el futuro si lo solicitas."
+    );
+
+    if (!confirmation) {
+        return;
+    }
+
+    try {
+        // --- INICIO DE LA CORRECCIÓN ---
+        const response = await fetch(`${API_BASE_URL}/users/${currentUser.id}/deactivate`, {
+            method: 'PATCH',
+            headers: {
+                // Añadimos la cabecera de autorización con el token.
+                'Authorization': `Bearer ${currentUser.token}`
+            }
+        });
+        // --- FIN DE LA CORRECCIÓN ---
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({ detail: 'No se pudo desactivar la cuenta.' }));
+            throw new Error(errorData.detail);
+        }
+
+        const result = await response.json();
+        alert(result.message);
+        
+        // Después de desactivar la cuenta, cerramos la sesión.
+        logout();
+
+    } catch (error) {
+        console.error('Error al desactivar la cuenta:', error);
+        alert(`Error: ${error.message}`);
+    }
+}
 
     // Aseguramos que la función sea accesible desde atributos inline (onchange) si todavía los usas.
     window.previewImages = previewImages;
