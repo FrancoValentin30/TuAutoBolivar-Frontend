@@ -573,13 +573,18 @@ function showPublishVehiclePage() {
  * @param {string} id The ID of the vehicle to edit.
  */
 async function saveVehicle() {
-    if (!currentUser) {
+    // 1. Verificamos que el usuario esté logueado Y que tengamos su token.
+    if (!currentUser || !currentUser.token) {
         alert('Debes iniciar sesión para realizar esta acción.');
+        showPage('login');
         return;
     }
+
     const publicationId = document.getElementById('vehicleId').value;
     const isEditing = !!publicationId;
     const formData = new FormData();
+
+    // (El código para añadir datos al formData se mantiene igual)
     formData.append('marca', document.getElementById('vehicleBrand').value);
     formData.append('modelo', document.getElementById('vehicleModel').value);
     formData.append('año', document.getElementById('vehicleYear').value);
@@ -591,30 +596,52 @@ async function saveVehicle() {
     formData.append('descripcion', document.getElementById('vehicleDescription').value);
     formData.append('precio', document.getElementById('vehiclePrice').value);
     formData.append('telefono_contacto', document.getElementById('vehicleContactPhone').value);
+
+    // Si estamos creando, enviamos el id_usuario
     if (!isEditing) {
         formData.append('id_usuario', currentUser.id);
     }
-
-    // Usamos el nuevo array de imágenes
-    if (publicationImageFiles.length === 0) {
+    
+    // Usamos el array de imágenes
+    if (publicationImageFiles.length > 0) {
+        publicationImageFiles.forEach(file => {
+            formData.append('images', file);
+        });
+    } else if (!isEditing) {
         alert('Por favor, añade al menos una imagen para el vehículo.');
         return;
     }
-    publicationImageFiles.forEach(file => {
-        formData.append('images', file);
-    });
 
     const method = isEditing ? 'PUT' : 'POST';
-    const url = isEditing ? `${API_BASE_URL}/publications/${publicationId}` : `${API_BASE_URL}/publications/upload`;
+    const url = isEditing 
+        ? `${API_BASE_URL}/publications/${publicationId}` 
+        : `${API_BASE_URL}/publications/upload`;
+
     try {
-        const response = await fetch(url, { method: method, body: formData });
+        // --- INICIO DE LA CORRECCIÓN ---
+        const response = await fetch(url, {
+            method: method,
+            headers: {
+                // Añadimos la cabecera de autorización con el token.
+                'Authorization': `Bearer ${currentUser.token}`
+            },
+            body: formData,
+        });
+        // --- FIN DE LA CORRECCIÓN ---
+
         const result = await response.json();
-        if (!response.ok) throw new Error(result.detail || 'Ocurrió un error');
+        if (!response.ok) {
+            throw new Error(result.detail || 'Ocurrió un error al guardar la publicación.');
+        }
+
         alert(isEditing ? '¡Publicación actualizada!' : result.message);
+        
         document.getElementById('publishVehicleForm').reset();
         publicationImageFiles = [];
         renderImagePreview();
+
         fetchAndRenderPublications();
+        
         if (currentUser.role === 'admin' || currentUser.role === 'superadmin') {
             showPage('adminPanel');
         } else {
@@ -1006,36 +1033,42 @@ function renderAdminVehicleTable() {
  * @param {number} publicationId El ID de la publicación a eliminar.
  */
 async function deletePublication(publicationId) {
-    // Pedimos confirmación para evitar borrados accidentales
-    const confirmation = confirm(`¿Estás seguro de que quieres eliminar la publicación con ID ${publicationId}? Esta acción no se puede deshacer.`);
+    if (!currentUser || !currentUser.token) {
+        alert("Debes iniciar sesión para realizar esta acción.");
+        return;
+    }
 
+    const confirmation = confirm(`¿Estás seguro de que quieres eliminar la publicación con ID ${publicationId}?`);
     if (!confirmation) {
-        return; // Si el admin cancela, no hacemos nada
+        return;
     }
 
     try {
-        // Hacemos la petición DELETE al backend
         const response = await fetch(`${API_BASE_URL}/publications/${publicationId}`, {
             method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${currentUser.token}`
+            },
         });
 
-        const result = await response.json();
-
         if (!response.ok) {
-            throw new Error(result.detail || 'No se pudo eliminar la publicación.');
+            const errorData = await response.json();
+            throw new Error(errorData.detail || 'No se pudo eliminar la publicación.');
         }
 
-        // ¡Éxito! Mostramos el mensaje y actualizamos la vista
+        const result = await response.json();
         alert(result.message);
-
-        // Eliminamos la fila de la tabla sin recargar todo
-        const rowToRemove = document.getElementById(`pub-row-${publicationId}`);
-        if (rowToRemove) {
-            rowToRemove.remove();
+        
+        // Volvemos a cargar las publicaciones para refrescar la vista
+        fetchAndRenderPublications();
+        // Si el usuario está en el panel de admin, refrescamos también esa tabla
+        if (document.getElementById('adminPanel')?.classList.contains('active')) {
+             renderAdminVehicleTable();
+        }
+         if (document.getElementById('myVehicles')?.classList.contains('active')) {
+             renderMyVehicles();
         }
 
-        // Volvemos a cargar los datos del catálogo para mantener todo sincronizado
-        fetchAndRenderPublications();
 
     } catch (error) {
         console.error('Error al eliminar la publicación:', error);
@@ -1048,19 +1081,16 @@ async function deletePublication(publicationId) {
  * @param {number} publicationId El ID de la publicación a editar.
  */
 function editPublication(publicationId) {
-    // 1. Buscamos la publicación completa en nuestros datos locales.
     const pub = publicationsData.find(p => p.id_publicacion === publicationId);
     if (!pub) {
         alert('Error: No se encontró la publicación para editar.');
         return;
     }
 
-    // 2. Rellenamos todos los campos del formulario con los datos de la publicación.
+    // Rellenamos el formulario
     document.getElementById('publishEditTitle').textContent = 'Editar Vehículo';
     document.getElementById('saveVehicleButton').textContent = 'Actualizar Vehículo';
-
-    // Usamos el ID de la publicación para saber que estamos en "modo edición"
-    document.getElementById('vehicleId').value = pub.id_publicacion;
+    document.getElementById('vehicleId').value = pub.id_publicacion; 
 
     const vehicle = pub.vehiculo;
     document.getElementById('vehicleBrand').value = vehicle.marca;
@@ -1075,16 +1105,17 @@ function editPublication(publicationId) {
     document.getElementById('vehicleContactPhone').value = pub.telefono_contacto;
     document.getElementById('vehicleDescription').value = vehicle.descripcion;
 
-    // Opcional: Limpiamos la vista previa de imágenes, ya que no podemos pre-rellenar el input de archivos.
+    // Limpiamos la vista previa de imágenes
+    publicationImageFiles = [];
+    renderImagePreview(); 
     const previewContainer = document.getElementById('imagePreviewContainer');
     if (previewContainer) {
-        previewContainer.innerHTML = '<p class="text-sm text-gray-500 col-span-full">Las imágenes actuales se mantendrán si no seleccionas nuevas.</p>';
+        const noImagesText = document.getElementById('noImagesText');
+        if(noImagesText) noImagesText.innerHTML = '<p class="text-sm text-gray-500 col-span-full">Las imágenes actuales se mantendrán si no seleccionas nuevas.</p>';
     }
 
-    // 3. Mostramos la página del formulario.
     showPage('publishVehicle', document.getElementById('publishVehicleNav'));
 }
-
 
 /**
  * Toggles the status of a vehicle between 'active' and 'inactive'.
