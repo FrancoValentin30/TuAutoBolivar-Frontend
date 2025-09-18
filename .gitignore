@@ -7,9 +7,5 @@
 .DS_Store
 Thumbs.db
 
-# Archivos de entorno (si alguna vez los usas)
-.env
-.env.*
-
 # Dependencias de Node (aunque no las uses ahora, es una buena práctica)
 node_modules/
