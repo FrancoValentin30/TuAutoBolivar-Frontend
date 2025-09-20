@@ -484,3 +484,185 @@ section {
   margin: 0;
   padding: 0;
 }
+
+/* ============================
+   Navbar estilos adaptativos
+============================ */
+.navbar-light {
+  background-image: linear-gradient(
+    to right top,
+    #f8fafc,
+    #f1f5f9,
+    #e2e8f0,
+    #cbd5e1,
+    #94a3b8
+  );
+  color: #111827; /* gris oscuro */
+}
+
+.navbar-dark {
+  background-image: linear-gradient(
+    to right top,
+    #0b0f1a,
+    #0f1726,
+    #111c2d,
+    #122033
+  );
+  color: #f9fafb; /* texto claro */
+}
+
+/* ============================
+   Botón de navegación base
+============================ */
+.nav-btn {
+  @apply inline-flex items-center justify-center rounded-xl px-4 py-2 
+         text-sm font-medium transition;
+}
+
+/* Light mode */
+.navbar-light .nav-btn {
+  @apply text-gray-900 border border-gray-300 bg-white/70;
+}
+.navbar-light .nav-btn:hover {
+  @apply bg-white shadow;
+}
+
+/* Dark mode */
+.navbar-dark .nav-btn {
+  @apply text-white border border-white/20 bg-white/5 backdrop-blur;
+}
+.navbar-dark .nav-btn:hover {
+  @apply bg-white/10;
+}
+
+/* ============================
+   Botón destacado (ej: Login)
+============================ */
+.nav-btn-highlight {
+  @apply font-semibold;
+}
+
+.navbar-light .nav-btn-highlight {
+  @apply bg-pink-500 text-white hover:bg-pink-600;
+}
+
+.navbar-dark .nav-btn-highlight {
+  @apply bg-yellow-500 text-black hover:bg-yellow-400;
+}
+
+/* ============================
+   Botón peligro (Cerrar sesión)
+============================ */
+.btn-danger {
+  @apply font-semibold;
+}
+
+.navbar-light .btn-danger {
+  @apply bg-red-600 text-white hover:bg-red-500;
+}
+
+.navbar-dark .btn-danger {
+  @apply bg-red-500 text-white hover:bg-red-400;
+}
+
+/* ============================
+   Opcional: bloqueo de scroll
+   cuando menú móvil está abierto
+============================ */
+.body-lock {
+  overflow: hidden;
+  padding-right: var(--scrollbar-width, 0);
+}
+
+/* Overlay */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(6px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+.overlay.show {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Panel modal */
+.modal-panel {
+  background: rgba(15, 23, 42, 0.95); /* slate-900 */
+  border-radius: 1rem;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+  padding: 1rem;
+  position: relative;
+
+  width: 90%;
+  max-width: 480px;
+  max-height: 80vh;   /* 🔹 nunca ocupa más del 80% de la altura */
+  overflow-y: auto;   /* 🔹 si hay mucho contenido, scroll interno */
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  animation: fadeIn 0.3s ease;
+}
+
+/* Imagen en el lightbox */
+.lightbox-panel img {
+  border-radius: 0.75rem;
+  max-height: 45vh;   /* 🔹 como mucho el 45% de la pantalla */
+  width: auto;
+  object-fit: contain;
+  margin-bottom: 1rem;
+}
+
+/* Botón cerrar */
+.close-button {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  background: rgba(0, 0, 0, 0.6);
+  color: white;
+  border: none;
+  border-radius: 9999px;
+  font-size: 1.25rem;
+  padding: 0.25rem 0.5rem;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  z-index: 20;
+}
+.close-button:hover {
+  background: rgba(0,0,0,0.8);
+}
+
+/* Animación */
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+/* Desktop: modal más grande */
+@media (min-width: 768px) {
+  .modal-panel {
+    width: 80%;
+    max-width: 900px;
+    max-height: 85vh;
+  }
+  .lightbox-panel img {
+    max-height: 70vh;
+  }
+}
+
+/* 🔹 Ocultar scrollbars dentro del modal pero mantener scroll funcional */
+.modal-panel {
+  scrollbar-width: none;   /* Firefox */
+  -ms-overflow-style: none; /* IE/Edge */
+}
+.modal-panel::-webkit-scrollbar {
+  display: none; /* Chrome, Safari */
+}
