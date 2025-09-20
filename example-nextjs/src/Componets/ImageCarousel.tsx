@@ -12,6 +12,7 @@ export default function ImageCarousel({ images = [] as string[] }) {
   return (
     <div className="carousel-container relative">
       <img className="carousel-image" src={images[idx]} alt={`img-${idx}`} />
+
       {/* Botón ampliar */}
       <button
         type="button"
@@ -21,28 +22,33 @@ export default function ImageCarousel({ images = [] as string[] }) {
       >
         Ampliar
       </button>
+
       {images.length > 1 && (
         <>
           <button className="carousel-button left" onClick={() => go(-1)}>‹</button>
           <button className="carousel-button right" onClick={() => go(1)}>›</button>
         </>
       )}
+
       <div className="thumbnail-reel">
         {images.map((src, i) => (
           <img
             key={i}
             className={`thumbnail-item ${i === idx ? "active" : ""}`}
-            src={src} onClick={()=>setIdx(i)} alt={`thumb-${i}`}
+            src={src} 
+            onClick={() => setIdx(i)} 
+            alt={`thumb-${i}`}
           />
         ))}
       </div>
+
       {/* Lightbox */}
       <Modal open={open} onClose={() => setOpen(false)}>
-        <div className="relative flex flex-col items-center gap-2">
+        <div className="relative flex flex-col items-center gap-3 lightbox-panel">
           <img
             src={images[idx]}
             alt={`full-${idx}`}
-            className="max-h-[80vh] max-w-[90vw] object-contain rounded-xl"
+            className="object-contain rounded-xl max-h-[60vh] md:max-h-[75vh] max-w-full"
           />
           {images.length > 1 && (
             <div className="absolute inset-y-0 left-0 right-0 flex items-center justify-between px-2">
