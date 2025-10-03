@@ -1,0 +1,668 @@
+/* Importing Tailwind CSS directives */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+/* Base styles for the body and fonts */
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: #f0f2f5; /* Light, subtle gray background */
+    color: #333; /* Darker text for better readability */
+}
+/* dark base */
+.dark body { background-color: #0b0f1a; color: #e5e7eb; }
+/* Gradient Backgrounds */
+.gradient-bg-main {
+    background-image: linear-gradient(to right top, #6a00f4, #6e00f5, #7200f6, #7600f7, #7900f8, #7d00f9, #8100fa, #8500fa, #8900fb, #8d00fc, #9000fd, #9400fe);
+}
+/* Initial header background for gradient-bg-dark: opaque */
+.gradient-bg-dark {
+    background-image: linear-gradient(to right top, #4a00af, #4c00b2, #4e00b5, #5000b8, #5200bb, #5400bd, #5600bf, #5800c1, #5a00c3, #5c00c5, #5e00c7, #6000c9);
+    transition: background-color 0.3s ease-in-out; /* Smooth transition for background changes */
+}
+/* dark variants for gradients */
+.dark .gradient-bg-main {
+    background-image: linear-gradient(to right top, #0b1324, #0f1c2e, #13243a, #162b45, #183150);
+}
+.dark .gradient-bg-dark {
+    background-image: linear-gradient(to right top, #0b0f1a, #0d1320, #0f1726, #111c2d, #122033);
+}
+/* Transparent header class applied by JS on scroll */
+.header-transparent {
+    background-color: rgba(74, 0, 175, 0.7); /* Slightly transparent version of the dark purple */
+}
+
+/* Accent Button Color */
+.btn-accent {
+    background-image: linear-gradient(to right, #ec4899, #db2777); /* Pink/Magenta gradient */
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(236, 72, 153, 0.3);
+}
+.btn-accent:hover {
+    background-image: linear-gradient(to right, #db2777, #be185d); /* Darker on hover */
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(236, 72, 153, 0.4);
+}
+
+/* Primary Button (blue) */
+.btn-primary {
+    background-image: linear-gradient(to right, #3b82f6, #2563eb); /* Blue gradient */
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+.btn-primary:hover {
+    background-image: linear-gradient(to right, #2563eb, #1d4ed8); /* Darker gradient on hover */
+    transform: translateY(-2px); /* Slight lift on hover */
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+}
+/* dark surfaces: make white cards less bright */
+.dark .bg-white { background-color: #111827 !important; color: #e5e7eb; border: 1px solid #1f2937; }
+.dark .text-gray-900 { color: #e5e7eb !important; }
+.dark .border-gray-300 { border-color: #374151 !important; }
+.dark .modal-panel { background-color: #1f2937; color: #e5e7eb; }
+.dark .custom-file-input { background-color: #374151; color: #e5e7eb; }
+.dark .custom-file-input:hover { background-color: #4b5563; }
+
+/* Inputs, selects y textareas en dark mode */
+.dark input,
+.dark select,
+.dark textarea {
+    background-color: #0f172a; /* slate-900 */
+    color: #e5e7eb; /* text-gray-200 */
+    border: 1px solid #374151; /* gray-700 */
+}
+.dark input::placeholder,
+.dark textarea::placeholder {
+    color: #6b7280; /* gray-500: menos brillante en dark */
+}
+.dark input:focus,
+.dark select:focus,
+.dark textarea:focus {
+    outline: 2px solid #2563eb; /* blue-600 */
+    outline-offset: 0;
+}
+
+/* Tablas del panel admin */
+.dark table { color: #e5e7eb; }
+.dark .table-striped thead th {
+    background-color: #0b1324; /* más oscuro para header */
+    color: #cbd5e1; /* slate-300 */
+    border-bottom: 1px solid #374151;
+}
+.dark .table-striped tbody tr,
+.dark .table-striped tbody tr td { background-color: #0f172a; }
+.dark .table-striped tbody tr:nth-child(even),
+.dark .table-striped tbody tr:nth-child(even) td { background-color: #111827; }
+.dark .table-striped tbody tr:hover {
+    background-color: #1f2937; /* gray-800 */
+}
+.dark .table-striped td,
+.dark .table-striped th {
+    border-color: #374151;
+}
+
+/* Botones del navbar en dark */
+.dark .nav-btn {
+    background-color: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.12);
+    color: #e5e7eb;
+}
+.dark .nav-btn:hover { background-color: rgba(255,255,255,0.12); }
+
+/* Sombras más suaves en dark para evitar halo brillante */
+.dark .shadow,
+.dark .shadow-sm,
+.dark .shadow-md,
+.dark .shadow-lg,
+.dark .shadow-xl,
+.dark .shadow-2xl {
+    box-shadow: 0 6px 14px rgba(0,0,0,0.45), 0 2px 6px rgba(0,0,0,0.35) !important;
+}
+
+/* Chips/botones de acción (admin) en dark */
+.dark .bg-blue-600 { background-color: #2563eb !important; border: 1px solid #1d4ed8 !important; }
+.dark .bg-blue-600:hover { background-color: #1d4ed8 !important; }
+
+.dark .bg-red-600 { background-color: #dc2626 !important; border: 1px solid #b91c1c !important; }
+.dark .bg-red-600:hover { background-color: #b91c1c !important; }
+
+.dark .bg-yellow-500 { background-color: #eab308 !important; color: #0b0f1a !important; border: 1px solid #ca8a04 !important; }
+.dark .bg-yellow-500:hover { background-color: #ca8a04 !important; }
+
+.dark .bg-green-600 { background-color: #16a34a !important; border: 1px solid #15803d !important; }
+.dark .bg-green-600:hover { background-color: #15803d !important; }
+/* Secondary Button (lighter blue) */
+.btn-secondary {
+    background-image: linear-gradient(to right, #60a5fa, #3b82f6); /* Lighter blue gradient */
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+}
+.btn-secondary:hover {
+    background-image: linear-gradient(to right, #3b82f6, #2563eb); /* Darker gradient on hover */
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+}
+/* Danger Button (red) */
+.btn-danger {
+    background-image: linear-gradient(to right, #ef4444, #dc2626); /* Red gradient */
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+.btn-danger:hover {
+    background-image: linear-gradient(to right, #dc2626, #b91c1c); /* Darker red on hover */
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+}
+/* Success Button (green) */
+.btn-success {
+    background-image: linear-gradient(to right, #22c55e, #16a34a); /* Green gradient */
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+.btn-success:hover {
+    background-image: linear-gradient(to right, #16a34a, #15803d); /* Darker green on hover */
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+}
+
+
+/* Fade-in animation for page transitions */
+.fade-in {
+    animation: fadeIn 0.6s ease-out forwards;
+}
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(15px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+/* Custom scrollbar for a cleaner look */
+::-webkit-scrollbar {
+    width: 10px;
+}
+::-webkit-scrollbar-track {
+    background: #e0e2e5; /* Lighter track */
+    border-radius: 10px;
+}
+::-webkit-scrollbar-thumb {
+    background: #a0a4ab; /* Muted thumb color */
+    border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: #7a7e85; /* Darker on hover */
+}
+
+/* Card hover effect */
+.vehicle-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    cursor: pointer;
+}
+.vehicle-card:hover {
+    transform: translateY(-5px); /* Lift card slightly */
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15); /* More prominent shadow */
+}
+/* Table row hover effect */
+.table-striped tbody tr {
+    transition: background-color 0.2s ease;
+}
+.table-striped tbody tr:nth-child(odd) {
+    background-color: #f9fafb; /* Light stripe for tables */
+}
+.table-striped tbody tr:hover {
+    background-color: #f0f4f8; /* Lighter background on hover */
+}
+
+/* Navigation Button Style in Header */
+.nav-btn {
+    background-color: transparent;
+    color: white;
+    padding: 0.75rem 1.25rem;
+    border-radius: 9999px; /* Pill shape */
+    transition: all 0.3s ease;
+    border: 1px solid rgba(255, 255, 255, 0.3); /* Subtle white border */
+}
+.nav-btn:hover {
+    background-color: rgba(255, 255, 255, 0.1); /* Slight background on hover */
+    border-color: rgba(255, 255, 255, 0.6);
+    transform: translateY(-1px);
+}
+.nav-btn.active {
+    background-color: rgba(255, 255, 255, 0.2);
+    border-color: white;
+    font-weight: 600;
+}
+.nav-btn-highlight {
+    background-image: linear-gradient(to right, #ec4899, #db2777); /* Pink/Magenta gradient */
+    color: white;
+    box-shadow: 0 4px 15px rgba(236, 72, 153, 0.3);
+    border: none;
+}
+.nav-btn-highlight:hover {
+    background-image: linear-gradient(to right, #db2777, #be185d);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(236, 72, 153, 0.4);
+}
+
+/* Overlay for contact panel and general modals */
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6); /* Semi-transparent black background */
+    display: flex;
+    justify-content: center; /* Corrected typo here */
+    align-items: center;
+    z-index: 1000; /* Above all other content */
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+.overlay.show {
+    opacity: 1;
+    visibility: visible;
+}
+.modal-panel { /* Generic style for all modal content panels */
+    background-color: white;
+    padding: 2.5rem;
+    border-radius: 1.5rem; /* Large rounded corners */
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2); /* Deeper shadow */
+    max-width: 500px;
+    width: 90%;
+    transform: scale(0.9);
+    transition: transform 0.3s ease;
+    position: relative;
+}
+.overlay.show .modal-panel {
+    transform: scale(1);
+}
+.close-button {
+    position: absolute;
+    top: 1.25rem;
+    right: 1.25rem;
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: #888;
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+.close-button:hover {
+    color: #333;
+}
+
+/* Custom file input button styling */
+.custom-file-input {
+    display: inline-block;
+    background-color: #e2e8f0; /* Light gray background */
+    color: #374151; /* Dark text */
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.75rem; /* Rounded corners */
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    text-align: center;
+}
+.custom-file-input:hover {
+    background-color: #cbd5e1; /* Slightly darker on hover */
+}
+.custom-file-input input[type="file"] {
+    display: none; /* Hide the default file input */
+}
+
+/* Modal for confirmation (specific style) */
+.confirmation-modal-content {
+    max-width: 450px; /* Slightly smaller for confirmation */
+    text-align: center;
+}
+.modal-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin-top: 2rem;
+}
+
+/* Carousel specific styles */
+.carousel-container {
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+    border-radius: 1rem;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.carousel-image {
+    width: 100%;
+    height: 400px; /* Fixed height for consistency */
+    object-fit: cover;
+    object-position: center;
+    display: block;
+    transition: opacity 0.3s ease-in-out;
+}
+
+.carousel-button {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background-color: rgba(0, 0, 0, 0.5);
+    color: white;
+    border: none;
+    padding: 0.75rem 1rem;
+    cursor: pointer;
+    font-size: 1.5rem;
+    border-radius: 9999px; /* Pill shape */
+    transition: background-color 0.3s ease;
+    z-index: 10;
+}
+.carousel-button:hover {
+    background-color: rgba(0, 0, 0, 0.7);
+}
+.carousel-button.left {
+    left: 1rem;
+}
+.carousel-button.right {
+    right: 1rem;
+}
+
+.thumbnail-reel {
+    display: flex;
+    justify-content: center;
+    gap: 0.75rem;
+    margin-top: 1rem;
+    overflow-x: auto; /* Enable horizontal scrolling for many thumbnails */
+    padding-bottom: 0.5rem; /* Space for scrollbar */
+}
+.thumbnail-reel::-webkit-scrollbar {
+    height: 8px;
+}
+.thumbnail-reel::-webkit-scrollbar-track {
+    background: #e0e2e5;
+    border-radius: 10px;
+}
+.thumbnail-reel::-webkit-scrollbar-thumb {
+    background: #a0a4ab;
+    border-radius: 10px;
+}
+.thumbnail-reel::-webkit-scrollbar-thumb:hover {
+    background: #7a7e85;
+}
+
+.thumbnail-item {
+    width: 80px;
+    height: 60px;
+    object-fit: cover;
+    object-position: center;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: border-color 0.2s ease, transform 0.2s ease;
+}
+.thumbnail-item:hover {
+    transform: scale(1.05);
+}
+.thumbnail-item.active {
+    border-color: #3b82f6; /* Highlight active thumbnail */
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+} 
+
+/* Estilos para el carrusel de previsualización de imágenes */
+.preview-image-wrapper {
+    position: relative;
+    flex-shrink: 0; /* Evita que las imágenes se encojan */
+    border: 4px solid transparent;
+    transition: border-color 0.2s ease;
+}
+
+.preview-image-wrapper.is-primary {
+    border-color: #3b82f6; /* Borde azul para la imagen principal */
+}
+
+.preview-image-actions {
+    position: absolute;
+    top: 0;
+    right: 0;
+    display: flex;
+    gap: 4px;
+    padding: 6px;
+    background-color: rgba(0, 0, 0, 0.4);
+    border-bottom-left-radius: 0.5rem;
+}
+
+.preview-action-btn {
+    background: none;
+    border: none;
+    color: white;
+    cursor: pointer;
+    font-size: 1rem;
+    padding: 4px;
+    line-height: 1;
+    transition: transform 0.2s ease;
+}
+
+.preview-action-btn:hover {
+    transform: scale(1.15);
+}
+
+/* Estilos para el contenido del modal de imagen */
+.image-modal-content {
+    max-width: 90vw;
+    max-height: 90vh;
+    object-fit: contain;
+    border-radius: 0.5rem;
+    box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+}
+
+/* Estilos para el botón de ampliar */
+.expand-button {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background-color: rgba(0, 0, 0, 0.5);
+    color: white;
+    border: none;
+    padding: 0.75rem;
+    cursor: pointer;
+    border-radius: 9999px;
+    transition: all 0.2s ease;
+    z-index: 10;
+    font-size: 1.25rem;
+    line-height: 1;
+}
+
+.expand-button:hover {
+    background-color: rgba(0, 0, 0, 0.7);
+    transform: scale(1.1);
+}
+
+section {
+  width: 100%;
+  max-width: 100% !important;
+}
+
+.full-width {
+  width: 100% !important;
+  max-width: 100% !important;
+  margin: 0;
+  padding: 0;
+}
+
+/* ============================
+   Navbar estilos adaptativos
+============================ */
+.navbar-light {
+  background-image: linear-gradient(
+    to right top,
+    #f8fafc,
+    #f1f5f9,
+    #e2e8f0,
+    #cbd5e1,
+    #94a3b8
+  );
+  color: #111827; /* gris oscuro */
+}
+
+.navbar-dark {
+  background-image: linear-gradient(
+    to right top,
+    #0b0f1a,
+    #0f1726,
+    #111c2d,
+    #122033
+  );
+  color: #f9fafb; /* texto claro */
+}
+
+/* ============================
+   Botón de navegación base
+============================ */
+.nav-btn {
+  @apply inline-flex items-center justify-center rounded-xl px-4 py-2 
+         text-sm font-medium transition;
+}
+
+/* Light mode */
+.navbar-light .nav-btn {
+  @apply text-gray-900 border border-gray-300 bg-white/70;
+}
+.navbar-light .nav-btn:hover {
+  @apply bg-white shadow;
+}
+
+/* Dark mode */
+.navbar-dark .nav-btn {
+  @apply text-white border border-white/20 bg-white/5 backdrop-blur;
+}
+.navbar-dark .nav-btn:hover {
+  @apply bg-white/10;
+}
+
+/* ============================
+   Botón destacado (ej: Login)
+============================ */
+.nav-btn-highlight {
+  @apply font-semibold;
+}
+
+.navbar-light .nav-btn-highlight {
+  @apply bg-pink-500 text-white hover:bg-pink-600;
+}
+
+.navbar-dark .nav-btn-highlight {
+  @apply bg-yellow-500 text-black hover:bg-yellow-400;
+}
+
+/* ============================
+   Botón peligro (Cerrar sesión)
+============================ */
+.btn-danger {
+  @apply font-semibold;
+}
+
+.navbar-light .btn-danger {
+  @apply bg-red-600 text-white hover:bg-red-500;
+}
+
+.navbar-dark .btn-danger {
+  @apply bg-red-500 text-white hover:bg-red-400;
+}
+
+/* ============================
+   Opcional: bloqueo de scroll
+   cuando menú móvil está abierto
+============================ */
+.body-lock {
+  overflow: hidden;
+  padding-right: var(--scrollbar-width, 0);
+}
+
+/* Overlay */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(6px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+.overlay.show {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Panel modal */
+.modal-panel {
+  background: rgba(15, 23, 42, 0.95); /* slate-900 */
+  border-radius: 1rem;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+  padding: 1rem;
+  position: relative;
+
+  width: 90%;
+  max-width: 480px;
+  max-height: 80vh;   /* 🔹 nunca ocupa más del 80% de la altura */
+  overflow-y: auto;   /* 🔹 si hay mucho contenido, scroll interno */
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  animation: fadeIn 0.3s ease;
+}
+
+/* Imagen en el lightbox */
+.lightbox-panel img {
+  border-radius: 0.75rem;
+  max-height: 45vh;   /* 🔹 como mucho el 45% de la pantalla */
+  width: auto;
+  object-fit: contain;
+  margin-bottom: 1rem;
+}
+
+/* Botón cerrar */
+.close-button {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  background: rgba(0, 0, 0, 0.6);
+  color: white;
+  border: none;
+  border-radius: 9999px;
+  font-size: 1.25rem;
+  padding: 0.25rem 0.5rem;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  z-index: 20;
+}
+.close-button:hover {
+  background: rgba(0,0,0,0.8);
+}
+
+/* Animación */
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+/* Desktop: modal más grande */
+@media (min-width: 768px) {
+  .modal-panel {
+    width: 80%;
+    max-width: 900px;
+    max-height: 85vh;
+  }
+  .lightbox-panel img {
+    max-height: 70vh;
+  }
+}
+
+/* 🔹 Ocultar scrollbars dentro del modal pero mantener scroll funcional */
+.modal-panel {
+  scrollbar-width: none;   /* Firefox */
+  -ms-overflow-style: none; /* IE/Edge */
+}
+.modal-panel::-webkit-scrollbar {
+  display: none; /* Chrome, Safari */
+}
