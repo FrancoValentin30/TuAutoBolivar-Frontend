@@ -43,7 +43,7 @@ export async function POST(req: Request) {
     res.cookies.set("access_token", loginData.access_token, {
       httpOnly: true,
       sameSite: "lax",
-      secure: false, // ponelo en true si desplegás con https
+      secure: true, // ponelo en true si desplegás con https
       path: "/",
       maxAge,
     });
