@@ -4,7 +4,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
-const BFF_LOGIN = "/api/login";
+const BFF_LOGIN = process.env.NEXT_PUBLIC_API_URL + "/login" || "api/login";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -17,6 +17,7 @@ export default function LoginPage() {
     setError("");
 
     try {
+      // console.log("Logging in with:", { email, password, BFF_LOGIN });
       const res = await fetch(BFF_LOGIN, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -39,8 +40,12 @@ export default function LoginPage() {
       } else {
         router.push("/catalog");
       }
-    } catch (err: any) {
-      setError(err.message || "Error al iniciar sesión");
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message || "Error al iniciar sesión");
+      } else {
+        setError("Error al iniciar sesión");
+      }
     }
   }
 
