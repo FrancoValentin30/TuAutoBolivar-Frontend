@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
+import { clearSession } from "@/lib/auth";
 
 function ThemeToggle() {
   const [isDark, setIsDark] = useState<boolean | null>(null);
@@ -135,15 +136,12 @@ export default function Navbar() {
           {logged && (
             <button
               className="nav-btn btn-danger"
-              onClick={async () => {
-                try {
-                  await fetch("/api/logout", { method: "POST" });
-                } catch {}
-                localStorage.removeItem("user");
+              onClick={() => {
+                clearSession();
                 location.href = "/login";
               }}
             >
-              Cerrar Sesión
+              Cerrar Sesion
             </button>
           )}
           <ThemeToggle />
@@ -196,15 +194,12 @@ export default function Navbar() {
             {logged && (
               <button
                 className="nav-btn btn-danger w-full text-center"
-                onClick={async () => {
-                  try {
-                    await fetch("/api/logout", { method: "POST" });
-                  } catch {}
-                  localStorage.removeItem("user");
+                onClick={() => {
+                  clearSession();
                   location.href = "/login";
                 }}
               >
-                Cerrar Sesión
+                Cerrar Sesion
               </button>
             )}
             <ThemeToggle />

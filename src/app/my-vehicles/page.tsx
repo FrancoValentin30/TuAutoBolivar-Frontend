@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { apiFetch } from "@/lib/api";
 
 export default function MyVehiclesPage() {
   const [pubs, setPubs] = useState<any[]>([]);
@@ -13,9 +14,7 @@ export default function MyVehiclesPage() {
         const raw = localStorage.getItem("user");
         if (!raw) throw new Error("Debes iniciar sesión");
         const user = JSON.parse(raw);
-        const r = await fetch(`/api/users/${user.id}/publications`, {
-          credentials: "include",
-        });
+        const r = await apiFetch(`/users/${user.id}/publications`, { auth: true });
         if (!r.ok) throw new Error(`Error ${r.status}`);
         const j = await r.json();
         setPubs(j || []);
@@ -60,7 +59,7 @@ export default function MyVehiclesPage() {
                     onClick={async () => {
                       if (!confirm("¿Eliminar esta publicación?")) return;
                       try {
-                        const r = await fetch(`/api/publications/${p.id_publicacion}`, { method: "DELETE", credentials: "include" });
+                        const r = await apiFetch(`/publications/${p.id_publicacion}`, { method: "DELETE", auth: true });
                         const j = await r.json().catch(()=>({}));
                         if (!r.ok) throw new Error(j?.detail || `No se pudo eliminar (HTTP ${r.status})`);
                         // quitar de la grilla

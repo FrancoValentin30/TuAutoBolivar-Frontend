@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { apiFetch, API_BASE } from "@/lib/api";
 
 export default function AdminNewUserPage() {
   const [name, setName] = useState("");
@@ -18,17 +19,43 @@ export default function AdminNewUserPage() {
     setError("");
     setLoading(true);
     try {
-      const res = await fetch("/api/users", {
+      const registerRes = await fetch(`${API_BASE}/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, phone, password, role }),
+        body: JSON.stringify({ name, email, phone, password }),
       });
-      const j = await res.json().catch(() => ({}));
-      if (!res.ok && res.status !== 201) {
-        throw new Error(j?.detail || `No se pudo crear el usuario (HTTP ${res.status})`);
+      const registerJson = await registerRes.json().catch(() => ({}));
+      if (!registerRes.ok) {
+        throw new Error(registerJson?.detail || `No se pudo crear el usuario (HTTP ${registerRes.status})`);
       }
-      if (j?.warning) {
-        alert(`Usuario creado. Aviso: ${j.warning}`);
+
+      let finalJson = registerJson;
+      if (role !== "user") {
+        const createdId: number | undefined =
+          registerJson?.id_usuario ?? registerJson?.id ?? registerJson?.user?.id_usuario ?? registerJson?.user?.id;
+        if (createdId) {
+          const changeRes = await apiFetch(`/admin/users/${createdId}/change-role`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ new_role: role }),
+            auth: true,
+          });
+          const changeJson = await changeRes.json().catch(() => ({}));
+          if (changeRes.ok) {
+            finalJson = changeJson;
+          } else {
+            finalJson = {
+              ...registerJson,
+              warning: changeJson?.detail || "Usuario creado, pero no se pudo cambiar el rol",
+            };
+          }
+        } else {
+          finalJson = { ...registerJson, warning: "Usuario creado, pero no se obtuvo ID para cambiar rol" };
+        }
+      }
+
+      if (finalJson?.warning) {
+        alert(`Usuario creado. Aviso: ${finalJson.warning}`);
       } else {
         alert("Usuario creado correctamente");
       }

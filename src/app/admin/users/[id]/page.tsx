@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
+import { apiFetch } from "@/lib/api";
 
 type AdminUser = {
   id_usuario: number;
@@ -34,7 +35,7 @@ export default function AdminEditUserPage() {
     async function load() {
       setLoading(true); setError("");
       try {
-        const r = await fetch(`/api/users?include_inactive=1`, { credentials: "include" });
+        const r = await apiFetch(`/users?include_inactive=1`, { auth: true });
         if (!r.ok) throw new Error(`No se pudo cargar usuarios (${r.status})`);
         const list: AdminUser[] = await r.json();
         const found = list.find(x => String(x.id_usuario) === String(id));
@@ -62,11 +63,11 @@ export default function AdminEditUserPage() {
       if (password) payload.password = password;
 
       // PUT datos base
-      const r1 = await fetch(`/api/users/${u.id_usuario}`, {
+      const r1 = await apiFetch(`/admin/users/${u.id_usuario}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        credentials: "include",
         body: JSON.stringify(payload),
+        auth: true,
       });
       if (!r1.ok) {
         const j = await r1.json().catch(() => ({}));
@@ -76,11 +77,11 @@ export default function AdminEditUserPage() {
       // Cambio de rol solo si superadmin y no superadmin destino
       const currentMainRole = u.roles?.[0]?.nombre || "user";
       if (isSuper && role && role !== currentMainRole) {
-        const r2 = await fetch(`/api/users/${u.id_usuario}/change-role`, {
+        const r2 = await apiFetch(`/admin/users/${u.id_usuario}/change-role`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
-          credentials: "include",
           body: JSON.stringify({ new_role: role }),
+          auth: true,
         });
         if (!r2.ok) {
           const j = await r2.json().catch(() => ({}));

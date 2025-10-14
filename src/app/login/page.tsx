@@ -1,10 +1,9 @@
-// src/app/login/page.tsx
 "use client";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-
-const BFF_LOGIN = process.env.NEXT_PUBLIC_API_URL + "/login" || "api/login";
+import { API_BASE } from "@/lib/api";
+import { saveSession, clearSession } from "@/lib/auth";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -17,34 +16,47 @@ export default function LoginPage() {
     setError("");
 
     try {
-      // console.log("Logging in with:", { email, password, BFF_LOGIN });
-      const res = await fetch(BFF_LOGIN, {
+      const res = await fetch(`${API_BASE}/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        credentials: "include", // incluye cookies
         body: JSON.stringify({ email, password }),
       });
 
+      const loginPayload = await res.json().catch(() => ({}));
       if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.detail || "Error al iniciar sesión");
+        throw new Error(loginPayload?.detail || "Error al iniciar sesion");
       }
 
-      const data = await res.json();
-      try { localStorage.setItem("user", JSON.stringify(data)); } catch {}
-      console.log("Login ok:", data);
+      const token: string | undefined = loginPayload?.access_token;
+      if (!token) {
+        throw new Error("Respuesta de login invalida (sin token).");
+      }
 
-      // redirigir según rol
-      if (data.role === "superadmin" || data.role === "admin") {
+      const meRes = await fetch(`${API_BASE}/users/me`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const meData = await meRes.json().catch(() => null);
+
+      const sessionUser =
+        meRes.ok && meData
+          ? { ...meData, access_token: token, token_type: loginPayload?.token_type }
+          : loginPayload;
+
+      clearSession();
+      saveSession(sessionUser, token);
+
+      const role = sessionUser?.role;
+      if (role === "superadmin" || role === "admin") {
         router.push("/admin");
       } else {
         router.push("/catalog");
       }
     } catch (err: unknown) {
+      clearSession();
       if (err instanceof Error) {
-        setError(err.message || "Error al iniciar sesión");
+        setError(err.message || "Error al iniciar sesion");
       } else {
-        setError("Error al iniciar sesión");
+        setError("Error al iniciar sesion");
       }
     }
   }
@@ -52,12 +64,10 @@ export default function LoginPage() {
   return (
     <main className="w-full flex items-center justify-center min-h-screen gradient-bg-dark text-white">
       <div className="bg-white text-gray-900 rounded-2xl shadow-xl p-10 w-full max-w-md">
-        <h1 className="text-3xl font-extrabold mb-6 text-center">Iniciar Sesión</h1>
+        <h1 className="text-3xl font-extrabold mb-6 text-center">Iniciar Sesion</h1>
 
         {error && (
-          <div className="bg-red-100 text-red-700 px-4 py-2 rounded-lg mb-4">
-            {error}
-          </div>
+          <div className="bg-red-100 text-red-700 px-4 py-2 rounded-lg mb-4">{error}</div>
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -73,7 +83,7 @@ export default function LoginPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-semibold mb-1">Contraseña</label>
+            <label className="block text-sm font-semibold mb-1">Contrasena</label>
             <input
               type="password"
               value={password}
@@ -92,9 +102,9 @@ export default function LoginPage() {
         </form>
 
         <p className="mt-6 text-center text-sm">
-          ¿No tenés cuenta?{" "}
+          No tenes cuenta?{" "}
           <a href="/register" className="text-blue-600 hover:underline">
-            Registrate acá
+            Registrate aca
           </a>
         </p>
       </div>

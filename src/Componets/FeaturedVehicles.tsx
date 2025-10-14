@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import VehicleCard from "./VehicleCard";
-import { API_V1 } from "@/lib/api";
+import { API_BASE, apiFetch } from "@/lib/api";
 
 export default function FeaturedVehicles() {
   const [tab, setTab] = useState("destacados");
@@ -10,9 +10,13 @@ export default function FeaturedVehicles() {
 
   useEffect(() => {
     async function load() {
-      const res = await fetch(`${API_V1}/publications`);
-      const data = await res.json();
-      setVehicles(data);
+      try {
+        const res = await apiFetch("/publications");
+        const data = await res.json().catch(() => []);
+        setVehicles(Array.isArray(data) ? data : []);
+      } catch {
+        setVehicles([]);
+      }
     }
     load();
   }, []);

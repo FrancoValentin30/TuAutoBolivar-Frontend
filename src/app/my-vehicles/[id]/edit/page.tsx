@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { API_V1 } from "@/lib/api";
+import { API_BASE, apiFetch } from "@/lib/api";
 import ImageManager from "@/Componets/ImageManager";
 import {
   PUBLICATION_LIMITS as LIMITS,
@@ -39,7 +39,7 @@ type Pub = {
   imagenes?: Img[];
 };
 
-const API_ORIGIN = (API_V1 || "").replace(/\/api\/v1\/?$/, "");
+const API_ORIGIN = (API_BASE || "").replace(/\/api\/v1\/?$/, "");
 
 const toText = (value: unknown, limit: number) =>
   typeof value === "string" ? value.slice(0, limit) : value != null ? String(value).slice(0, limit) : "";
@@ -84,7 +84,7 @@ export default function EditMyVehiclePage() {
   useEffect(() => {
     (async () => {
       try {
-        const response = await fetch(`/api/publications/${id}`, { cache: "no-store" });
+        const response = await apiFetch(`/publications/${id}`, { cache: "no-store" });
         const data = await response.json();
         if (!response.ok) throw new Error(data?.detail || `No se pudo cargar (HTTP ${response.status})`);
         setPub(data);
@@ -128,9 +128,9 @@ export default function EditMyVehiclePage() {
       return;
     }
     try {
-      const response = await fetch(`/api/publications/${id}/images/${imageId}/set-principal`, {
+      const response = await apiFetch(`/publications/${id}/images/${imageId}/set-principal`, {
         method: "PATCH",
-        credentials: "include",
+        auth: true,
       });
       const payload = await response.json().catch(() => ({}));
       if (!response.ok) {
@@ -151,9 +151,9 @@ export default function EditMyVehiclePage() {
     }
     if (!confirm("Eliminar esta imagen?")) return;
     try {
-      const response = await fetch(`/api/publications/${id}/images/${imageId}`, {
+      const response = await apiFetch(`/publications/${id}/images/${imageId}`, {
         method: "DELETE",
-        credentials: "include",
+        auth: true,
       });
       if (!response.ok) {
         const payload = await response.json().catch(() => ({}));
@@ -241,11 +241,11 @@ export default function EditMyVehiclePage() {
         vehiculo,
       };
 
-      const response = await fetch(`/api/publications/${id}`, {
+      const response = await apiFetch(`/publications/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        credentials: "include",
         body: JSON.stringify(payload),
+        auth: true,
       });
       const payloadJson = await response.json().catch(() => ({}));
       if (!response.ok) {
@@ -262,11 +262,15 @@ export default function EditMyVehiclePage() {
 
       if (newImages.length) {
         const fd = new FormData();
-        newImages.forEach((file) => fd.append("images", file));
-        const uploadResponse = await fetch(`/api/publications/${id}/images`, {
+        for (const file of newImages) {
+          const buffer = await file.arrayBuffer();
+          const blob = new Blob([buffer]);
+          fd.append("images", blob, file.name || "upload.jpg");
+        }
+        const uploadResponse = await apiFetch(`/publications/${id}/images`, {
           method: "POST",
           body: fd,
-          credentials: "include",
+          auth: true,
         });
         if (!uploadResponse.ok) {
           const uploadPayload = await uploadResponse.json().catch(() => ({}));

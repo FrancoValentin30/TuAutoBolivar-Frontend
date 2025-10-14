@@ -27,7 +27,7 @@ export default function VehicleCard({ publication, onSelect }: Props) {
   const API_BASE = (process.env.NEXT_PUBLIC_API_URL || "").replace(/\/api\/v1\/?$/, "");
   const img = publication.imagenes && publication.imagenes.length > 0
     ? `${API_BASE}/${publication.imagenes[0].url_imagen}`
-    : "/car-placeholder.png";
+    : "/car-placeholder.svg";
 
   const content = (
     <div className="vehicle-card bg-white dark:bg-[#0f172a] dark:border dark:border-gray-700 rounded-2xl shadow-md overflow-hidden flex flex-col">

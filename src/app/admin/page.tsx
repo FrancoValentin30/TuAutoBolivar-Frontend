@@ -3,13 +3,10 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-
-const BFF = ""; // usamos rutas del BFF /api
+import { apiFetch } from "@/lib/api";
 
 async function fetchData(path: string) {
-  const res = await fetch(`/api${path}`, {
-    credentials: "include",
-  });
+  const res = await apiFetch(path, { auth: true });
   if (!res.ok) throw new Error(`GET ${path} -> ${res.status}`);
   return res.json();
 }
@@ -203,7 +200,7 @@ const AdminActions = {
         ? "¿Eliminar usuario?"
         : "¿Eliminar definitivamente este usuario? Esta acción no se puede deshacer.";
       if (!confirm(confirmMsg)) return;
-      const r = await fetch(`/api/users/${id}`, { method: "DELETE" });
+      const r = await apiFetch(`/admin/users/${id}`, { method: "DELETE", auth: true });
       if (!r.ok) {
         const j = await r.json().catch(() => ({} as any));
         return alert(j?.detail || `No se pudo eliminar (HTTP ${r.status})`);
@@ -212,7 +209,7 @@ const AdminActions = {
     }
     async function deactivate() {
       if (!confirm(active ? "¿Desactivar usuario?" : "¿Reactivar usuario?")) return;
-      const r = await fetch(`/api/users/${id}/deactivate`, { method: "PATCH" });
+      const r = await apiFetch(`/admin/users/${id}/toggle-status`, { method: "PATCH", auth: true });
       if (!r.ok) {
         const j = await r.json().catch(() => ({} as any));
         return alert(j?.detail || `No se pudo completar la acción (HTTP ${r.status})`);
@@ -235,7 +232,7 @@ const AdminActions = {
   Publication: ({ id, onDeleted }: { id: number; onDeleted?: () => void }) => {
     async function del() {
       if (!confirm("¿Eliminar publicación?")) return;
-      const r = await fetch(`/api/publications/${id}`, { method: "DELETE" });
+      const r = await apiFetch(`/publications/${id}`, { method: "DELETE", auth: true });
       if (!r.ok) {
         const j = await r.json().catch(() => ({} as any));
         return alert(j?.detail || `No se pudo eliminar (HTTP ${r.status})`);
@@ -255,7 +252,7 @@ const AdminActions = {
   Testimonial: ({ id, onDone, mode = "delete" }: { id: number; onDone?: () => void; mode?: "delete" | "approve" }) => {
     async function del() {
       if (!confirm("¿Eliminar testimonio?")) return;
-      const r = await fetch(`/api/testimonials/admin/${id}`, { method: "DELETE" });
+      const r = await apiFetch(`/testimonials/admin/${id}`, { method: "DELETE", auth: true });
       if (!r.ok) {
         const j = await r.json().catch(() => ({} as any));
         return alert(j?.detail || `No se pudo eliminar (HTTP ${r.status})`);
@@ -263,7 +260,7 @@ const AdminActions = {
       onDone?.();
     }
     async function approve() {
-      const r = await fetch(`/api/testimonials/admin/${id}/approve`, { method: "PATCH" });
+      const r = await apiFetch(`/testimonials/admin/${id}/approve`, { method: "PATCH", auth: true });
       if (!r.ok) {
         const j = await r.json().catch(() => ({} as any));
         return alert(j?.detail || `No se pudo aprobar (HTTP ${r.status})`);

@@ -1,5 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
+import { apiFetch } from "@/lib/api";
+import { clearSession, updateStoredUser } from "@/lib/auth";
 
 export default function ProfilePage() {
   const [user, setUser] = useState<any>(null);
@@ -9,12 +11,12 @@ export default function ProfilePage() {
     // Cargar desde API (más confiable que localStorage)
     (async()=>{
       try {
-        const r = await fetch('/api/users/me', { credentials: 'include' });
+        const r = await apiFetch('/users/me', { auth: true });
         const j = await r.json().catch(()=>({}));
         if (r.ok) {
           setUser(j);
           setForm({ name: j.name || "", email: j.email || "", phone: j.phone || "", password:"", confirmPassword:"" });
-          try { localStorage.setItem('user', JSON.stringify(j)); } catch {}
+          try { updateStoredUser(j); } catch {}
         } else {
           const u = localStorage.getItem('user');
           if (u) {
@@ -43,16 +45,16 @@ export default function ProfilePage() {
     const payload: any = { name: form.name };
     if (form.password) payload.password = form.password;
 
-    const r = await fetch(`/api/users/me`, {
-      method:"PUT",
-      headers:{ "Content-Type":"application/json" },
-      credentials: 'include',
-      body: JSON.stringify(payload)
+    const r = await apiFetch(`/users/me`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+      auth: true,
     });
     const data = await r.json();
     if (!r.ok) return alert(data.detail || "No se pudo actualizar el perfil.");
 
-    try { localStorage.setItem("user", JSON.stringify(data)); } catch {}
+    try { updateStoredUser(data); } catch {}
     setUser(data);
     alert("¡Perfil actualizado!");
     setForm(s => ({ ...s, password:"", confirmPassword:"" }));
@@ -85,13 +87,13 @@ export default function ProfilePage() {
                 // Chequear publicaciones activas del usuario
                 let uid: number | undefined = undefined;
                 try {
-                  const meR = await fetch(`/api/users/me`, { credentials: "include" });
+                  const meR = await apiFetch(`/users/me`, { auth: true });
                   const meJ = await meR.json().catch(()=>({}));
                   uid = meJ?.id_usuario ?? meJ?.id ?? meJ?.user_id;
                 } catch {}
                 if (uid) {
                   try {
-                    const pr = await fetch(`/api/users/${uid}/publications`, { credentials: "include" });
+                    const pr = await apiFetch(`/users/${uid}/publications`, { auth: true });
                     const pj = await pr.json().catch(()=>([]));
                     const actives = Array.isArray(pj)
                       ? pj.filter((p:any) => String(p?.estado ?? "").toLowerCase() === "activo")
@@ -106,11 +108,10 @@ export default function ProfilePage() {
                 if (!confirm("¿Eliminar tu cuenta? Se realizará un borrado lógico (podrás reactivarla con un admin).")) return;
               } catch {}
               try {
-                const r = await fetch(`/api/users/me`, { method: "DELETE", credentials: "include" });
+                const r = await apiFetch(`/users/me`, { method: "DELETE", auth: true });
                 const j = await r.json().catch(()=>({}));
                 if (!r.ok) { alert(j?.detail || `No se pudo eliminar (HTTP ${r.status})`); return; }
-                try { await fetch(`/api/logout`, { method: "POST", credentials: "include" }); } catch {}
-                try { localStorage.removeItem("user"); } catch {}
+                clearSession();
                 alert("Cuenta eliminada (soft delete). Hasta luego.");
                 window.location.href = "/login";
               } catch (e: any) {

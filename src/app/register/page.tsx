@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { API_BASE } from "@/lib/api";
 
 export default function RegisterPage() {
   const [name, setName] = useState("");
@@ -55,7 +56,7 @@ export default function RegisterPage() {
     }
 
     try {
-      const res = await fetch(`/api/register`, {
+      const res = await fetch(`${API_BASE}/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

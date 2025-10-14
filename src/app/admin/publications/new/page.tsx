@@ -8,6 +8,7 @@ import {
   getCounterClass,
   keepDigits,
 } from "@/lib/publicationLimits";
+import { apiFetch } from "@/lib/api";
 
 export default function AdminCreatePublicationPage() {
   const [marca, setMarca] = useState("");
@@ -121,14 +122,18 @@ export default function AdminCreatePublicationPage() {
         vehiculo,
       };
 
-      const formData = new FormData();
-      formData.append("publication_data", JSON.stringify(publicationData));
-      imagenes.forEach((file) => formData.append("images", file));
+      const forward = new FormData();
+      forward.append("publication_data", JSON.stringify(publicationData));
+      for (const file of imagenes) {
+        const buffer = await file.arrayBuffer();
+        const blob = new Blob([buffer]);
+        forward.append("images", blob, file.name || "upload.jpg");
+      }
 
-      const res = await fetch("/api/publications/upload", {
+      const res = await apiFetch("/publications", {
         method: "POST",
-        credentials: "include",
-        body: formData,
+        body: forward,
+        auth: true,
       });
 
       const payload = await res.json().catch(() => ({}));
