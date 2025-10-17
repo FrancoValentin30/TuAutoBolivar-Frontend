@@ -12,6 +12,12 @@ export type Publicacion = {
   id_usuario: number;
   estado?: string; destacado?: boolean;
   imagenes: Imagen[];
+  propietario?: {
+    id_usuario: number;
+    email: string;
+    nombre?: string;
+    telefono?: string | null;
+  };
 };
 export type LoginIn = { email: string; password: string; };
 export type LoginOut = {

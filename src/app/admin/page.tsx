@@ -110,6 +110,7 @@ export default function AdminPage() {
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-bold">ID</th>
                 <th className="px-6 py-3 text-left text-xs font-bold">Vehículo</th>
+                <th className="px-6 py-3 text-left text-xs font-bold">Propietario</th>
                 <th className="px-6 py-3 text-left text-xs font-bold">Precio</th>
                 <th className="px-6 py-3 text-left text-xs font-bold">Estado</th>
                 <th className="px-6 py-3"></th>
@@ -121,6 +122,9 @@ export default function AdminPage() {
                   <td className="px-6 py-3">{p.id_publicacion}</td>
                   <td className="px-6 py-3">
                     {p?.vehiculo?.marca} {p?.vehiculo?.modelo} {p?.vehiculo?.año}
+                  </td>
+                  <td className="px-6 py-3">
+                    {p?.propietario?.email || "—"}
                   </td>
                   <td className="px-6 py-3">
                     ${(p.precio ?? 0).toLocaleString("es-AR")} USD

@@ -5,6 +5,7 @@ import VehicleCard from "@/Componets/VehicleCard";
 import Modal from "@/Componets/Modal";
 import ImageCarousel from "@/Componets/ImageCarousel";
 import { apiFetch, ApiFetchOptions } from "@/lib/api";
+import { getStoredToken } from "@/lib/auth";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 const API_ORIGIN = (API_URL || "").replace(/\/api\/v1\/?$/, "");
@@ -56,7 +57,8 @@ export default function CatalogPage() {
   useEffect(() => {
     async function loadInitialData() {
       try {
-        const res = await apiFetch("/publications");
+        const token = getStoredToken();
+        const res = await apiFetch(token ? "/publications?exclude_my=1" : "/publications");
         const items = await res.json().catch(() => []);
         setPublications(Array.isArray(items) ? items : []);
       } catch {
@@ -79,7 +81,9 @@ export default function CatalogPage() {
     const params = new URLSearchParams();
     if (marca.trim()) params.set("marca", marca.trim());
     if (modelo.trim()) params.set("modelo", modelo.trim());
-    const endpoint = params.toString() ? `/publications?${params}` : "/publications";
+    const token = getStoredToken();
+    if (token) params.set("exclude_my", "1");
+    const endpoint = params.toString() ? `/publications?${params}` : token ? "/publications?exclude_my=1" : "/publications";
 
     try {
       const res = await apiFetch(endpoint);
@@ -220,22 +224,24 @@ export default function CatalogPage() {
               <p><strong>Tipo:</strong> {selected.vehiculo?.tipo}</p>
               <p><strong>Estado publicacion:</strong> {selected.estado}</p>
             </div>
-            {selected.telefono_contacto && (
+            <div className="flex flex-col sm:flex-row justify-center gap-3 pt-2">
+              {selected.telefono_contacto && (
+                <a
+                  href={`https://wa.me/${selected.telefono_contacto}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn-success text-white px-4 py-2 rounded-xl inline-block text-center sm:min-w-[180px]"
+                >
+                  Contactar por WhatsApp
+                </a>
+              )}
               <a
-                href={`https://wa.me/${selected.telefono_contacto}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="btn-success text-white px-4 py-2 rounded-xl inline-block text-center"
+                href={`/vehicle/${selected.id_publicacion}`}
+                className="btn-primary text-white px-4 py-2 rounded-xl inline-block text-center sm:min-w-[180px]"
               >
-                Contactar por WhatsApp
+                Ver ficha completa
               </a>
-            )}
-            <a
-              href={`/vehicle/${selected.id_publicacion}`}
-              className="btn-primary text-white px-4 py-2 rounded-xl inline-block text-center"
-            >
-              Ver ficha completa
-            </a>
+            </div>
           </div>
         ) : null}
       </Modal>
