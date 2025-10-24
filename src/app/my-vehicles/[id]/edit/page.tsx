@@ -478,10 +478,10 @@ export default function EditMyVehiclePage() {
               const MAX = 10;
               const remaining = Math.max(0, MAX - currentImages.length);
               return remaining > 0 ? (
-                <div className="space-y-2">
-                  <p className="text-sm text-gray-500">Puedes sumar hasta {remaining} imagen(es) adicionales.</p>
+                  <div className="space-y-2">
+                  <p className="text-sm text-gray-500">Puedes sumar hasta {remaining} imagen(es) adicionales. Ten en cuenta que al agregar o quitar imagenes la publicacion volvera a estado Pendiente para revision.</p>
                   <ImageManager files={newImages} onChange={setNewImages} maxFiles={remaining} />
-                </div>
+                  </div>
               ) : (
                 <p className="text-sm text-gray-500">Alcanzaste el maximo de imagenes permitidas.</p>
               );

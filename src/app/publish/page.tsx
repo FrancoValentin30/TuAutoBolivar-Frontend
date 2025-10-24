@@ -149,7 +149,10 @@ export default function PublishPage() {
         throw new Error("Error al publicar.");
       }
 
-      alert(payload?.message ?? "Vehiculo publicado con exito.");
+      alert(
+        payload?.message ??
+          "Vehiculo enviado a revision. Te avisaremos cuando sea aprobado."
+      );
       window.location.href = "/catalog";
     } catch (err: unknown) {
       if (err instanceof Error && err.message) {
