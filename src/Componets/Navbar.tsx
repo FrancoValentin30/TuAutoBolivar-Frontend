@@ -118,9 +118,13 @@ export default function Navbar() {
   return (
     <header className={headerClasses}>
       <div className="mx-auto max-w-6xl flex items-center justify-between px-4 py-3">
-        <div className="text-2xl font-extrabold tracking-tight">
+        <Link
+          href="/catalog"
+          className="text-2xl font-extrabold tracking-tight inline-flex items-center gap-1 rounded-xl px-3 py-2 transition-colors hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-yellow-400"
+          aria-label="Ir al catalogo"
+        >
           TuAuto<span className="text-yellow-400">Bolívar</span>
-        </div>
+        </Link>
 
         {/* Desktop */}
         <nav className="hidden md:flex gap-2 text-sm font-medium items-center">
@@ -209,3 +213,4 @@ export default function Navbar() {
     </header>
   );
 }
+

@@ -9,6 +9,7 @@ export default function RegisterPage() {
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
   const router = useRouter();
 
@@ -48,6 +49,9 @@ export default function RegisterPage() {
     }
     if (!/\d/.test(password)) {
       validationErrors.push("La contrasena debe incluir al menos un numero.");
+    }
+    if (password !== confirmPassword) {
+      validationErrors.push("Las contrasenas deben coincidir.");
     }
 
     if (validationErrors.length > 0) {
@@ -140,6 +144,15 @@ export default function RegisterPage() {
           placeholder="Contrasena"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
+          required
+          className="w-full mb-4 px-4 py-3 border rounded-lg"
+        />
+
+        <input
+          type="password"
+          placeholder="Reingresa la contrasena"
+          value={confirmPassword}
+          onChange={(e) => setConfirmPassword(e.target.value)}
           required
           className="w-full mb-6 px-4 py-3 border rounded-lg"
         />
