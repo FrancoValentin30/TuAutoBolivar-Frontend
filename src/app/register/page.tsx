@@ -11,11 +11,13 @@ export default function RegisterPage() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const router = useRouter();
 
   async function handleRegister(e: React.FormEvent) {
     e.preventDefault();
     setError("");
+    setSuccess("");
 
     const validationErrors: string[] = [];
     const trimmedName = name.trim();
@@ -92,8 +94,29 @@ export default function RegisterPage() {
         return;
       }
 
-      alert(payload?.message ?? "Usuario registrado con exito");
-      router.push("/login");
+      const estado =
+        typeof payload?.estado_registro === "string"
+          ? payload.estado_registro.toLowerCase()
+          : "";
+      const message =
+        typeof payload?.message === "string" && payload.message.trim().length > 0
+          ? payload.message
+          : "Usuario registrado con exito.";
+
+      setName("");
+      setEmail("");
+      setPhone("");
+      setPassword("");
+      setConfirmPassword("");
+
+      if (estado === "pendiente") {
+        setSuccess(
+          `${message} Tu cuenta será habilitada cuando un administrador apruebe tu registro.`
+        );
+      } else {
+        setSuccess(`${message} Serás redirigido al inicio de sesión.`);
+        setTimeout(() => router.push("/login"), 1600);
+      }
     } catch (err: unknown) {
       if (err instanceof Error && err.message) {
         setError(err.message);
@@ -112,6 +135,7 @@ export default function RegisterPage() {
         <h1 className="text-2xl font-bold mb-6 text-center">Crear Cuenta</h1>
 
         {error && <p className="text-red-600 mb-4">{error}</p>}
+        {success && <p className="text-green-600 mb-4">{success}</p>}
 
         <input
           type="text"
