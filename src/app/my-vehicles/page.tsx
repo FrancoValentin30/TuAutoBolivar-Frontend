@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { apiFetch } from "@/lib/api";
+import { useDialog } from "@/Componets/DialogProvider";
 
 const getBadgeStyles = (estado?: string) => {
   switch ((estado || "").toLowerCase()) {
@@ -22,6 +23,7 @@ export default function MyVehiclesPage() {
   const [pubs, setPubs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>("");
+  const dialog = useDialog();
 
   useEffect(() => {
     async function load() {
@@ -139,7 +141,13 @@ export default function MyVehiclesPage() {
                     <button
                       className="px-3 py-2 rounded-xl bg-red-600 text-white text-sm"
                       onClick={async () => {
-                        if (!confirm("Eliminar esta publicacion?")) return;
+                        const confirmed = await dialog.confirm({
+                          title: "Eliminar publicación",
+                          message: "Eliminar esta publicacion?",
+                          confirmText: "Eliminar",
+                          variant: "warning",
+                        });
+                        if (!confirmed) return;
                         try {
                           const response = await apiFetch(
                             `/publications/${p.id_publicacion}`,
@@ -158,7 +166,11 @@ export default function MyVehiclesPage() {
                             )
                           );
                         } catch (e: any) {
-                          alert(e?.message || "Error al eliminar publicacion");
+                          await dialog.alert({
+                            title: "Error",
+                            message: e?.message || "Error al eliminar publicacion",
+                            variant: "error",
+                          });
                         }
                       }}
                     >

@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { apiFetch } from "@/lib/api";
+import { useDialog } from "@/Componets/DialogProvider";
 
 async function fetchData(path: string) {
   const res = await apiFetch(path, { auth: true });
@@ -562,17 +563,20 @@ const AdminActions = {
     id: number;
     onCompleted?: (result?: any) => void;
   }) => {
+    const dialog = useDialog();
     async function review(decision: "aprobar" | "rechazar") {
       let comentario: string | undefined;
       if (decision === "rechazar") {
-        const input = prompt("Motivo del rechazo (requerido):");
-        if (input === null) return;
-        const trimmed = input.trim();
-        if (!trimmed) {
-          alert("Debes ingresar un motivo para rechazar la solicitud.");
-          return;
-        }
-        comentario = trimmed;
+        const motivo = await dialog.prompt({
+          title: "Rechazar solicitud",
+          message: "Ingresa el motivo del rechazo.",
+          placeholder: "Motivo del rechazo",
+          confirmText: "Rechazar",
+          variant: "warning",
+          required: true,
+        });
+        if (motivo === null) return;
+        comentario = motivo;
       }
 
       const r = await apiFetch(`/admin/users/${id}/review`, {
@@ -583,18 +587,23 @@ const AdminActions = {
       });
       const payload = await r.json().catch(() => ({} as any));
       if (!r.ok) {
-        return alert(
-          payload?.detail ||
-            `No se pudo ${decision === "aprobar" ? "aprobar" : "rechazar"} (HTTP ${
-              r.status
-            })`
-        );
+        await dialog.alert({
+          title: "Error",
+          message:
+            payload?.detail ||
+            `No se pudo ${decision === "aprobar" ? "aprobar" : "rechazar"} (HTTP ${r.status})`,
+          variant: "error",
+        });
+        return;
       }
-      alert(
-        decision === "aprobar"
-          ? "Usuario aprobado correctamente."
-          : "Usuario rechazado correctamente."
-      );
+      await dialog.alert({
+        title: decision === "aprobar" ? "Usuario aprobado" : "Usuario rechazado",
+        message:
+          decision === "aprobar"
+            ? "Usuario aprobado correctamente."
+            : "Usuario rechazado correctamente.",
+        variant: decision === "aprobar" ? "success" : "info",
+      });
       onCompleted?.(payload);
     }
 
@@ -631,24 +640,44 @@ const AdminActions = {
     onToggled?: () => void;
     onRegistrationUpdated?: (user: any) => void;
   }) => {
+    const dialog = useDialog();
     const deleteLabel = active ? "Eliminar" : "Eliminar definitivamente";
     async function del() {
       const confirmMsg = active
         ? "Eliminar usuario?"
         : "Eliminar definitivamente este usuario? Esta accion no se puede deshacer.";
-      if (!confirm(confirmMsg)) return;
+      const confirmed = await dialog.confirm({
+        title: active ? "Eliminar usuario" : "Eliminar definitivamente",
+        message: confirmMsg,
+        confirmText: deleteLabel,
+        variant: "warning",
+      });
+      if (!confirmed) return;
       const r = await apiFetch(`/admin/users/${id}`, {
         method: "DELETE",
         auth: true,
       });
       if (!r.ok) {
         const j = await r.json().catch(() => ({} as any));
-        return alert(j?.detail || `No se pudo eliminar (HTTP ${r.status})`);
+        await dialog.alert({
+          title: "Error",
+          message: j?.detail || `No se pudo eliminar (HTTP ${r.status})`,
+          variant: "error",
+        });
+        return;
       }
       onDeleted?.();
     }
     async function deactivate() {
-      if (!confirm(active ? "Desactivar usuario?" : "Reactivar usuario?")) {
+      const confirmed = await dialog.confirm({
+        title: active ? "Desactivar usuario" : "Reactivar usuario",
+        message: active
+          ? "Desactivar usuario?"
+          : "Reactivar usuario?",
+        confirmText: active ? "Desactivar" : "Reactivar",
+        variant: "warning",
+      });
+      if (!confirmed) {
         return;
       }
       const r = await apiFetch(`/admin/users/${id}/toggle-status`, {
@@ -657,9 +686,12 @@ const AdminActions = {
       });
       if (!r.ok) {
         const j = await r.json().catch(() => ({} as any));
-        return alert(
-          j?.detail || `No se pudo completar la accion (HTTP ${r.status})`,
-        );
+        await dialog.alert({
+          title: "Error",
+          message: j?.detail || `No se pudo completar la accion (HTTP ${r.status})`,
+          variant: "error",
+        });
+        return;
       }
       onToggled?.();
     }
@@ -676,11 +708,18 @@ const AdminActions = {
       });
       const payload = await r.json().catch(() => ({} as any));
       if (!r.ok) {
-        return alert(
-          payload?.detail || `No se pudo aprobar (HTTP ${r.status})`,
-        );
+        await dialog.alert({
+          title: "Error",
+          message: payload?.detail || `No se pudo aprobar (HTTP ${r.status})`,
+          variant: "error",
+        });
+        return;
       }
-      alert("Usuario aprobado correctamente.");
+      await dialog.alert({
+        title: "Usuario aprobado",
+        message: "Usuario aprobado correctamente.",
+        variant: "success",
+      });
       onRegistrationUpdated?.(payload);
     }
 
@@ -727,13 +766,21 @@ const AdminActions = {
     onDeleted?: () => void;
     onRefresh?: () => void;
   }) => {
+    const dialog = useDialog();
     const normalized = (estado || "").toLowerCase();
 
     async function updateStatus(
       target: "Pendiente" | "Activo" | "Rechazado" | "Inactivo",
       confirmMsg?: string,
     ) {
-      if (confirmMsg && !confirm(confirmMsg)) return;
+      if (confirmMsg) {
+        const confirmed = await dialog.confirm({
+          message: confirmMsg,
+          confirmText: "Sí, continuar",
+          variant: "warning",
+        });
+        if (!confirmed) return;
+      }
       const r = await apiFetch(`/admin/publications/${id}/status`, {
         method: "PATCH",
         auth: true,
@@ -742,24 +789,36 @@ const AdminActions = {
       });
       const payload = await r.json().catch(() => ({} as any));
       if (!r.ok) {
-        return alert(
-          payload?.detail || `No se pudo actualizar (HTTP ${r.status})`,
-        );
+        await dialog.alert({
+          title: "Error",
+          message: payload?.detail || `No se pudo actualizar (HTTP ${r.status})`,
+          variant: "error",
+        });
+        return;
       }
       onRefresh?.();
     }
 
     async function del() {
-      if (!confirm("Eliminar publicacion?")) return;
+      const confirmed = await dialog.confirm({
+        title: "Eliminar publicación",
+        message: "Eliminar publicacion?",
+        confirmText: "Eliminar",
+        variant: "warning",
+      });
+      if (!confirmed) return;
       const r = await apiFetch(`/publications/${id}`, {
         method: "DELETE",
         auth: true,
       });
       const payload = await r.json().catch(() => ({} as any));
       if (!r.ok) {
-        return alert(
-          payload?.detail || `No se pudo eliminar (HTTP ${r.status})`,
-        );
+        await dialog.alert({
+          title: "Error",
+          message: payload?.detail || `No se pudo eliminar (HTTP ${r.status})`,
+          variant: "error",
+        });
+        return;
       }
       onDeleted?.();
       onRefresh?.();
@@ -838,17 +897,27 @@ const AdminActions = {
     onDone?: () => void;
     mode?: "delete" | "approve";
   }) => {
+    const dialog = useDialog();
     async function del() {
-      if (!confirm("Eliminar testimonio?")) return;
+      const confirmed = await dialog.confirm({
+        title: "Eliminar testimonio",
+        message: "Eliminar testimonio?",
+        confirmText: "Eliminar",
+        variant: "warning",
+      });
+      if (!confirmed) return;
       const r = await apiFetch(`/testimonials/admin/${id}`, {
         method: "DELETE",
         auth: true,
       });
       const payload = await r.json().catch(() => ({} as any));
       if (!r.ok) {
-        return alert(
-          payload?.detail || `No se pudo eliminar (HTTP ${r.status})`,
-        );
+        await dialog.alert({
+          title: "Error",
+          message: payload?.detail || `No se pudo eliminar (HTTP ${r.status})`,
+          variant: "error",
+        });
+        return;
       }
       onDone?.();
     }
@@ -859,9 +928,12 @@ const AdminActions = {
       });
       const payload = await r.json().catch(() => ({} as any));
       if (!r.ok) {
-        return alert(
-          payload?.detail || `No se pudo aprobar (HTTP ${r.status})`,
-        );
+        await dialog.alert({
+          title: "Error",
+          message: payload?.detail || `No se pudo aprobar (HTTP ${r.status})`,
+          variant: "error",
+        });
+        return;
       }
       onDone?.();
     }
