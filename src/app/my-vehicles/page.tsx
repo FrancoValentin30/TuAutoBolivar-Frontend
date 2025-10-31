@@ -108,7 +108,7 @@ export default function MyVehiclesPage() {
                   </span>
                   {statusLower === "pendiente" && (
                     <p className="text-sm text-yellow-600 mt-2">
-                      En revision. Te avisaremos cuando este aprobada.
+                      En revision. 
                     </p>
                   )}
                   {statusLower === "rechazado" && (

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { apiFetch } from "@/lib/api";
 
@@ -45,6 +45,16 @@ export default function AdminPage() {
   const [loadingPubs, setLoadingPubs] = useState(false);
   const [pubError, setPubError] = useState("");
   const [tests, setTests] = useState<any[]>([]);
+
+  const activeUsersCount = useMemo(
+    () => users.filter((u) => u?.activo !== false).length,
+    [users],
+  );
+  const inactiveUsersCount = users.length - activeUsersCount;
+  const visibleUsers = useMemo(
+    () => (showInactive ? users : users.filter((u) => u?.activo !== false)),
+    [users, showInactive],
+  );
 
   const fetchUsers = useCallback(async () => {
     const qs = showInactive ? "?include_inactive=1" : "";
@@ -208,113 +218,134 @@ export default function AdminPage() {
         )}
       </div>
 
-     {/* Usuarios */}
-<div className="rounded-2xl shadow-xl p-6 bg-white dark:bg-[#0f172a]">
-  <div className="flex items-center justify-between mb-4">
-    <h2 className="font-bold text-xl text-gray-900 dark:text-slate-100">Usuarios</h2>
-    <div className="flex items-center gap-4">
-      <label className="text-sm flex items-center gap-2 text-gray-700 dark:text-slate-300">
-        <input
-          type="checkbox"
-          checked={showInactive}
-          onChange={(e) => setShowInactive(e.target.checked)}
-        />
-        Mostrar inactivos
-      </label>
-      <Link
-        href="/admin/users/new"
-        className="btn-primary text-white px-4 py-2 rounded-xl"
-      >
-        Nuevo usuario
-      </Link>
-    </div>
-  </div>
+      {/* Usuarios */}
+      <div className="rounded-2xl shadow-xl p-6 bg-white dark:bg-[#0f172a]">
+        <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+          <div>
+            <h2 className="font-bold text-xl text-gray-900 dark:text-slate-100">Usuarios</h2>
+            <p className="text-xs text-gray-500 dark:text-slate-400">
+              Activos: {activeUsersCount} | Inactivos: {inactiveUsersCount}
+            </p>
+          </div>
+          <div className="flex items-center gap-4">
+            <label className="text-sm flex items-center gap-2 text-gray-700 dark:text-slate-300">
+              <input
+                type="checkbox"
+                checked={showInactive}
+                onChange={(e) => setShowInactive(e.target.checked)}
+              />
+              Mostrar inactivos
+            </label>
+            <Link
+              href="/admin/users/new"
+              className="btn-primary text-white px-4 py-2 rounded-xl"
+            >
+              Nuevo usuario
+            </Link>
+          </div>
+        </div>
 
-  <div className="overflow-x-auto">
-    {/* border-collapse evita halos y gaps; quitamos table-striped */}
-    <table className="min-w-full w-full border-collapse text-gray-900 dark:text-slate-100">
-      <thead className="bg-gray-100 dark:bg-slate-800/70">
-        <tr>
-          <th className="px-6 py-3 text-left text-xs font-bold">ID</th>
-          <th className="px-6 py-3 text-left text-xs font-bold">Nombre</th>
-          <th className="px-6 py-3 text-left text-xs font-bold">Email</th>
-          <th className="px-6 py-3 text-left text-xs font-bold">Rol</th>
-          <th className="px-6 py-3 text-left text-xs font-bold">Estado registro</th>
-          <th className="px-6 py-3"></th>
-        </tr>
-      </thead>
+        {visibleUsers.length === 0 ? (
+          <p className="text-sm text-gray-500 dark:text-slate-400">
+            {showInactive ? "No hay usuarios inactivos." : "No hay usuarios activos en este momento."}
+          </p>
+        ) : (
+          <div className="overflow-x-auto">
+            {/* border-collapse evita halos y gaps; quitamos table-striped */}
+            <table className="min-w-full w-full border-collapse text-gray-900 dark:text-slate-100">
+              <thead className="bg-gray-100 dark:bg-slate-800/70">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-bold">ID</th>
+                  <th className="px-6 py-3 text-left text-xs font-bold">Nombre</th>
+                  <th className="px-6 py-3 text-left text-xs font-bold">Email</th>
+                  <th className="px-6 py-3 text-left text-xs font-bold">Rol</th>
+                  <th className="px-6 py-3 text-left text-xs font-bold">Estado registro</th>
+                  <th className="px-6 py-3"></th>
+                </tr>
+              </thead>
 
-      {/* divide en dark debe ser oscuro; forzamos fondo uniforme por fila */}
-      <tbody
-        className="
-          divide-y divide-gray-200 dark:divide-slate-700
-          [&>tr]:bg-white dark:[&>tr]:bg-[#0f172a]
-        "
-      >
-        {users.map((u) => (
-          <tr key={u.id_usuario}>
-            <td className="px-6 py-3">{u.id_usuario}</td>
-            <td className="px-6 py-3">{u.nombre}</td>
-            <td className="px-6 py-3">{u.email}</td>
-            <td className="px-6 py-3">
-              <span
-                className={`text-xs px-2 py-0.5 rounded-full mr-2 ${
-                  u.activo ? "bg-green-100 text-green-700" : "bg-gray-200 text-gray-700"
-                }`}
+              {/* divide en dark debe ser oscuro; forzamos fondo uniforme por fila */}
+              <tbody
+                className="
+                  divide-y divide-gray-200 dark:divide-slate-700
+                  [&>tr]:bg-white dark:[&>tr]:bg-[#0f172a]
+                "
               >
-                {u.activo ? "Activo" : "Inactivo"}
-              </span>
-              {(u.roles?.map((r: any) => r.nombre).join(", ")) ?? ""}
-            </td>
-            <td className="px-6 py-3">
-              <span className={`text-xs px-2 py-0.5 rounded-full ${getStatusStyles(u.estado_registro)}`}>
-                {formatStatusLabel(u.estado_registro)}
-              </span>
-              {u.fecha_revision && (
-                <p className="text-xs text-gray-500 dark:text-slate-400 mt-1">
-                  Revisado: {formatDateTime(u.fecha_revision)}
-                </p>
-              )}
-              {u.comentario_revision && (
-                <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">
-                  Nota: {u.comentario_revision}
-                </p>
-              )}
-            </td>
-            <td className="px-6 py-3 whitespace-nowrap">
-              <div className="flex gap-2">
-                <AdminActions.User
-                  id={u.id_usuario}
-                  active={u.activo}
-                  estadoRegistro={u.estado_registro}
-                  onDeleted={() => {
-                    try {
-                      setUsers((prev: any[]) => prev.filter((x) => x.id_usuario !== u.id_usuario));
-                    } catch {}
-                  }}
-                  onToggled={() => {
-                    try {
-                      setUsers((prev: any[]) =>
-                        prev.map((x) => (x.id_usuario === u.id_usuario ? { ...x, activo: !x.activo } : x))
-                      );
-                    } catch {}
-                  }}
-                  onRegistrationUpdated={(updated) => {
-                    try {
-                      setUsers((prev: any[]) =>
-                        prev.map((x) => (x.id_usuario === u.id_usuario ? { ...x, ...updated } : x))
-                      );
-                    } catch {}
-                  }}
-                />
-              </div>
-            </td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
-  </div>
-</div>
+                {visibleUsers.map((u) => {
+                  const userIsActive = u?.activo !== false;
+                  return (
+                    <tr key={u.id_usuario}>
+                      <td className="px-6 py-3">{u.id_usuario}</td>
+                      <td className="px-6 py-3">{u.nombre}</td>
+                      <td className="px-6 py-3">{u.email}</td>
+                      <td className="px-6 py-3">
+                        <span
+                          className={`text-xs px-2 py-0.5 rounded-full mr-2 ${
+                            userIsActive ? "bg-green-100 text-green-700" : "bg-gray-200 text-gray-700"
+                          }`}
+                        >
+                          {userIsActive ? "Activo" : "Inactivo"}
+                        </span>
+                        {(u.roles?.map((r: any) => r.nombre).join(", ")) ?? ""}
+                      </td>
+                      <td className="px-6 py-3">
+                        <span className={`text-xs px-2 py-0.5 rounded-full ${getStatusStyles(u.estado_registro)}`}>
+                          {formatStatusLabel(u.estado_registro)}
+                        </span>
+                        {u.fecha_revision && (
+                          <p className="text-xs text-gray-500 dark:text-slate-400 mt-1">
+                            Revisado: {formatDateTime(u.fecha_revision)}
+                          </p>
+                        )}
+                        {u.comentario_revision && (
+                          <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">
+                            Nota: {u.comentario_revision}
+                          </p>
+                        )}
+                      </td>
+                      <td className="px-6 py-3 whitespace-nowrap">
+                        <div className="flex gap-2">
+                          <AdminActions.User
+                            id={u.id_usuario}
+                            active={userIsActive}
+                            estadoRegistro={u.estado_registro}
+                            onDeleted={() => {
+                              try {
+                                setUsers((prev: any[]) => prev.filter((x) => x.id_usuario !== u.id_usuario));
+                              } catch {}
+                            }}
+                            onToggled={() => {
+                              try {
+                                setUsers((prev: any[]) =>
+                                  prev.map((x) =>
+                                    x.id_usuario === u.id_usuario
+                                      ? {
+                                          ...x,
+                                          activo: x?.activo !== false ? false : true,
+                                        }
+                                      : x
+                                  )
+                                );
+                              } catch {}
+                            }}
+                            onRegistrationUpdated={(updated) => {
+                              try {
+                                setUsers((prev: any[]) =>
+                                  prev.map((x) => (x.id_usuario === u.id_usuario ? { ...x, ...updated } : x))
+                                );
+                              } catch {}
+                            }}
+                          />
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
 
 
       {/* Publicaciones */}

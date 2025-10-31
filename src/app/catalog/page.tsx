@@ -53,11 +53,13 @@ export default function CatalogPage() {
   const [errorSel, setErrorSel] = useState("");
   const [marca, setMarca] = useState("");
   const [modelo, setModelo] = useState("");
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
     async function loadInitialData() {
       try {
         const token = getStoredToken();
+        setIsAuthenticated(!!token);
         const res = await apiFetch(token ? "/publications?exclude_my=1" : "/publications");
         const items = await res.json().catch(() => []);
         setPublications(Array.isArray(items) ? items : []);
@@ -287,27 +289,29 @@ export default function CatalogPage() {
           </div>
         )}
 
-        <div className="mt-10 max-w-xl mx-auto text-left">
-          <h3 className="font-bold mb-2">Deja tu testimonio</h3>
-          {posted ? (
-            <p className="text-green-600">Gracias! Tu testimonio quedara pendiente de aprobacion.</p>
-          ) : (
-            <form onSubmit={handleSubmitTestimonial} className="space-y-2">
-              <textarea
-                value={newTest}
-                onChange={(e) => setNewTest(e.target.value)}
-                className="w-full border rounded-xl p-3"
-                placeholder="Contanos tu experiencia..."
-                rows={3}
-                required
-              />
-              {postError && <p className="text-red-600">{postError}</p>}
-              <button type="submit" className="btn-primary text-white px-4 py-2 rounded-xl">
-                Enviar
-              </button>
-            </form>
-          )}
-        </div>
+        {isAuthenticated ? (
+          <div className="mt-10 max-w-xl mx-auto text-left">
+            <h3 className="font-bold mb-2">Deja tu testimonio</h3>
+            {posted ? (
+              <p className="text-green-600">Gracias! Tu testimonio quedara pendiente de aprobacion.</p>
+            ) : (
+              <form onSubmit={handleSubmitTestimonial} className="space-y-2">
+                <textarea
+                  value={newTest}
+                  onChange={(e) => setNewTest(e.target.value)}
+                  className="w-full border rounded-xl p-3"
+                  placeholder="Contanos tu experiencia..."
+                  rows={3}
+                  required
+                />
+                {postError && <p className="text-red-600">{postError}</p>}
+                <button type="submit" className="btn-primary text-white px-4 py-2 rounded-xl">
+                  Enviar
+                </button>
+              </form>
+            )}
+          </div>
+        ) : null}
       </section>
 
       <section className="w-full gradient-bg-main text-center text-white py-16">

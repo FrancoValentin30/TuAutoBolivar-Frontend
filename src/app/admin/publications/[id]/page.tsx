@@ -151,6 +151,10 @@ export default function AdminEditPublicationPage() {
       alert("No se puede eliminar: id de imagen no disponible");
       return;
         }
+    if (currentImages.length + newImages.length <= 1) {
+      alert("Debes mantener al menos una imagen. Agrega una nueva antes de eliminar la actual.");
+      return;
+    }
     if (!confirm("Eliminar esta imagen?")) return;
     try {
       const response = await apiFetch(`/publications/${id}/images/${imageId}`, {
@@ -178,34 +182,60 @@ export default function AdminEditPublicationPage() {
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
-    setSaving(true);
 
     try {
       const marcaTrim = marca.trim();
       const modeloTrim = modelo.trim();
       const descripcionTrim = descripcion.trim();
       const anioNumber = anio === "" ? undefined : Number(anio);
-
-      if (!marcaTrim) throw new Error("Ingresa la marca (hasta 30 caracteres).");
-      if (!modeloTrim) throw new Error("Ingresa el modelo (hasta 30 caracteres).");
-      if (!kilometraje) throw new Error("Ingresa el kilometraje (solo numeros, maximo 9 digitos).");
-      if (!precio) throw new Error("Ingresa el precio (solo numeros, maximo 9 digitos).");
-
       const kilometrajeNumber = Number(kilometraje);
       const precioNumber = Number(precio);
-      if (!Number.isFinite(kilometrajeNumber)) throw new Error("El kilometraje debe contener solo numeros.");
-      if (!Number.isFinite(precioNumber)) throw new Error("El precio debe contener solo numeros.");
+      const phoneSanitized = telefono.replace(/\D/g, "");
+
+      if (!marcaTrim) {
+        setError("Ingresa la marca (hasta 30 caracteres).");
+        return;
+      }
+      if (!modeloTrim) {
+        setError("Ingresa el modelo (hasta 30 caracteres).");
+        return;
+      }
+      if (!kilometraje) {
+        setError("Ingresa el kilometraje (solo numeros, maximo 9 digitos).");
+        return;
+      }
+      if (!precio) {
+        setError("Ingresa el precio (solo numeros, maximo 9 digitos).");
+        return;
+      }
+      if (!Number.isFinite(kilometrajeNumber)) {
+        setError("El kilometraje debe contener solo numeros.");
+        return;
+      }
+      if (!Number.isFinite(precioNumber)) {
+        setError("El precio debe contener solo numeros.");
+        return;
+      }
       if (
         anioNumber !== undefined &&
         (!Number.isFinite(anioNumber) || anioNumber <= 0)
       ) {
-        throw new Error("El anio debe ser un numero positivo.");
+        setError("El anio debe ser un numero positivo.");
+        return;
+      }
+      if (!phoneSanitized || phoneSanitized.length < 10) {
+        setError("Ingresa un telefono valido (con caracteristica).");
+        return;
       }
 
-      const phoneSanitized = telefono.replace(/\D/g, "");
-      if (!phoneSanitized || phoneSanitized.length < 10) {
-        throw new Error("Ingresa un telefono valido (con caracteristica).");
+      const existingImages = pub?.imagenes?.length ?? 0;
+      const totalImages = existingImages + newImages.length;
+      if (totalImages === 0) {
+        setError("Debes mantener al menos una imagen en la publicacion.");
+        return;
       }
+
+      setSaving(true);
 
       const vehiculo: Vehiculo = {
         marca: marcaTrim,
