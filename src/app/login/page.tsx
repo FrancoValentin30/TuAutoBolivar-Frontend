@@ -35,12 +35,24 @@ export default function LoginPage() {
       const meRes = await fetch(`${API_BASE}/users/me`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      const meData = await meRes.json().catch(() => null);
+      const mePayload = await meRes.json().catch(() => null);
+      if (!meRes.ok) {
+        const detail =
+          (mePayload as any)?.detail ||
+          (typeof mePayload === "string" ? mePayload : null);
+        throw new Error(
+          detail ||
+            (meRes.status === 403
+              ? "Tu cuenta no está habilitada para iniciar sesión."
+              : "No se pudo obtener tu perfil.")
+        );
+      }
 
-      const sessionUser =
-        meRes.ok && meData
-          ? { ...meData, access_token: token, token_type: loginPayload?.token_type }
-          : loginPayload;
+      const sessionUser = {
+        ...mePayload,
+        access_token: token,
+        token_type: loginPayload?.token_type,
+      };
 
       clearSession();
       saveSession(sessionUser, token);

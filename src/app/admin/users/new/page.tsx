@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { apiFetch, API_BASE } from "@/lib/api";
+import { apiFetch } from "@/lib/api";
 
 function extractErrorMessage(detail: unknown, fallback: string): string {
   if (!detail) return fallback;
@@ -85,58 +85,29 @@ export default function AdminNewUserPage() {
 
     setLoading(true);
     try {
-      const registerRes = await fetch(`${API_BASE}/register`, {
+      const response = await apiFetch("/admin/users", {
         method: "POST",
+        auth: true,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name: trimmedName,
           email: trimmedEmail,
           phone: normalizedPhone ?? undefined,
           password: trimmedPassword,
+          role,
         }),
       });
-      const registerJson = await registerRes.json().catch(() => ({}));
-      if (!registerRes.ok) {
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) {
         throw new Error(
           extractErrorMessage(
-            registerJson?.detail,
-            `No se pudo crear el usuario (HTTP ${registerRes.status})`
+            payload?.detail,
+            `No se pudo crear el usuario (HTTP ${response.status})`
           )
         );
       }
 
-      let warning: string | undefined;
-      if (role !== "user") {
-        const createdId: number | undefined =
-          registerJson?.id_usuario ??
-          registerJson?.id ??
-          registerJson?.user?.id_usuario ??
-          registerJson?.user?.id;
-
-        if (createdId) {
-          const changeRes = await apiFetch(`/admin/users/${createdId}/change-role`, {
-            method: "PATCH",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ new_role: role }),
-            auth: true,
-          });
-          const changeJson = await changeRes.json().catch(() => ({}));
-          if (!changeRes.ok) {
-            warning = extractErrorMessage(
-              changeJson?.detail,
-              "Usuario creado, pero no se pudo cambiar el rol."
-            );
-          }
-        } else {
-          warning = "Usuario creado, pero no se obtuvo ID para cambiar el rol.";
-        }
-      }
-
-      if (warning) {
-        alert(`Usuario creado. Aviso: ${warning}`);
-      } else {
-        alert("Usuario creado correctamente");
-      }
+      alert("Usuario creado correctamente");
       router.push("/admin");
     } catch (err: unknown) {
       if (err instanceof Error && err.message) {

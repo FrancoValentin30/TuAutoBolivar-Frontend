@@ -35,6 +35,9 @@ const getStatusStyles = (estado?: string) => {
 
 export default function AdminPage() {
   const [users, setUsers] = useState<any[]>([]);
+  const [pendingUsers, setPendingUsers] = useState<any[]>([]);
+  const [loadingPending, setLoadingPending] = useState(false);
+  const [pendingError, setPendingError] = useState("");
   const [showInactive, setShowInactive] = useState(false);
   const [pubs, setPubs] = useState<any[]>([]);
   const [pubStatusFilter, setPubStatusFilter] =
@@ -52,6 +55,21 @@ export default function AdminPage() {
       setUsers([]);
     }
   }, [showInactive]);
+
+  const fetchPendingUsers = useCallback(async () => {
+    setLoadingPending(true);
+    setPendingError("");
+    try {
+      const data = await fetchData("/admin/users/pending");
+      setPendingUsers(Array.isArray(data) ? data : []);
+    } catch (error) {
+      console.error(error);
+      setPendingUsers([]);
+      setPendingError("No se pudieron cargar las solicitudes pendientes.");
+    } finally {
+      setLoadingPending(false);
+    }
+  }, []);
 
   const fetchPublications = useCallback(async () => {
     setLoadingPubs(true);
@@ -84,9 +102,28 @@ export default function AdminPage() {
     }
   }, []);
 
+  const formatDateTime = (value?: string | null) => {
+    if (!value) return "-";
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) {
+      return value;
+    }
+    return date.toLocaleString();
+  };
+
+  const formatStatusLabel = (value?: string | null) => {
+    if (!value) return "—";
+    const lower = value.toString().toLowerCase();
+    return lower.charAt(0).toUpperCase() + lower.slice(1);
+  };
+
   useEffect(() => {
     fetchUsers();
   }, [fetchUsers]);
+
+  useEffect(() => {
+    fetchPendingUsers();
+  }, [fetchPendingUsers]);
 
   useEffect(() => {
     fetchPublications();
@@ -100,90 +137,185 @@ export default function AdminPage() {
     <section className="fade-in space-y-8 w-full">
       <h1 className="text-3xl font-extrabold">Panel de Administracion</h1>
 
-      {/* Usuarios */}
+      {/* Solicitudes de registro pendientes */}
       <div className="bg-white rounded-2xl shadow-xl p-6">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="font-bold text-xl">Usuarios</h2>
-          <div className="flex items-center gap-4">
-            <label className="text-sm flex items-center gap-2">
-              <input
-                type="checkbox"
-                checked={showInactive}
-                onChange={(e) => setShowInactive(e.target.checked)}
-              />
-              Mostrar inactivos
-            </label>
-            <Link
-              href="/admin/users/new"
-              className="btn-primary text-white px-4 py-2 rounded-xl"
-            >
-              Nuevo usuario
-            </Link>
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between mb-4">
+          <div>
+            <h2 className="font-bold text-xl">Solicitudes de registro</h2>
+            <p className="text-sm text-gray-500">
+              Aprueba o rechaza los usuarios recién registrados antes de que puedan iniciar sesión.
+            </p>
           </div>
+          <button
+            onClick={fetchPendingUsers}
+            className="px-4 py-2 rounded-xl bg-gray-200 text-gray-700 hover:bg-gray-300 text-sm transition-colors"
+          >
+            Actualizar lista
+          </button>
         </div>
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200 table-striped">
-            <thead className="bg-gray-100">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-bold">ID</th>
-                <th className="px-6 py-3 text-left text-xs font-bold">Nombre</th>
-                <th className="px-6 py-3 text-left text-xs font-bold">Email</th>
-                <th className="px-6 py-3 text-left text-xs font-bold">Rol</th>
-                <th className="px-6 py-3"></th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {users.map((u) => (
-                <tr key={u.id_usuario}>
-                  <td className="px-6 py-3">{u.id_usuario}</td>
-                  <td className="px-6 py-3">{u.nombre}</td>
-                  <td className="px-6 py-3">{u.email}</td>
-                  <td className="px-6 py-3">
-                    <span
-                      className={`text-xs px-2 py-0.5 rounded-full mr-2 ${
-                        u.activo
-                          ? "bg-green-100 text-green-700"
-                          : "bg-gray-200 text-gray-700"
-                      }`}
-                    >
-                      {u.activo ? "Activo" : "Inactivo"}
-                    </span>
-                    {(u.roles?.map((r: any) => r.nombre).join(", ")) ?? ""}
-                  </td>
-                  <td className="px-6 py-3 flex gap-2">
-                    <AdminActions.User
-                      id={u.id_usuario}
-                      active={u.activo}
-                      onDeleted={() => {
-                        try {
-                          setUsers((prev: any[]) =>
-                            prev.filter((x) => x.id_usuario !== u.id_usuario)
-                          );
-                        } catch {
-                          /* noop */
-                        }
-                      }}
-                      onToggled={() => {
-                        try {
-                          setUsers((prev: any[]) =>
-                            prev.map((x) =>
-                              x.id_usuario === u.id_usuario
-                                ? { ...x, activo: !x.activo }
-                                : x
-                            )
-                          );
-                        } catch {
-                          /* noop */
-                        }
-                      }}
-                    />
-                  </td>
+        {pendingError && (
+          <p className="text-sm text-red-600 mb-4">{pendingError}</p>
+        )}
+        {loadingPending ? (
+          <p className="text-sm text-gray-500">Cargando solicitudes...</p>
+        ) : pendingUsers.length === 0 ? (
+          <p className="text-sm text-gray-500">No hay registros pendientes.</p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200 table-striped">
+              <thead className="bg-gray-100">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-bold">ID</th>
+                  <th className="px-6 py-3 text-left text-xs font-bold">Nombre</th>
+                  <th className="px-6 py-3 text-left text-xs font-bold">Email</th>
+                  <th className="px-6 py-3 text-left text-xs font-bold">Registrado</th>
+                  <th className="px-6 py-3 text-left text-xs font-bold">Estado</th>
+                  <th className="px-6 py-3 text-left text-xs font-bold">Acciones</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {pendingUsers.map((u) => (
+                  <tr key={`pending-${u.id_usuario}`}>
+                    <td className="px-6 py-3">{u.id_usuario}</td>
+                    <td className="px-6 py-3">{u.nombre}</td>
+                    <td className="px-6 py-3">{u.email}</td>
+                    <td className="px-6 py-3 text-sm text-gray-600">
+                      {formatDateTime(u.fecha_registro)}
+                    </td>
+                    <td className="px-6 py-3">
+                      <span
+                        className={`text-xs px-2 py-0.5 rounded-full ${getStatusStyles(
+                          u.estado_registro
+                        )}`}
+                      >
+                        {formatStatusLabel(u.estado_registro)}
+                      </span>
+                    </td>
+                    <td className="px-6 py-3 flex flex-wrap gap-2">
+                      <AdminActions.RegistrationReview
+                        id={u.id_usuario}
+                        onCompleted={() => {
+                          fetchPendingUsers();
+                          fetchUsers();
+                        }}
+                      />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
+
+     {/* Usuarios */}
+<div className="rounded-2xl shadow-xl p-6 bg-white dark:bg-[#0f172a]">
+  <div className="flex items-center justify-between mb-4">
+    <h2 className="font-bold text-xl text-gray-900 dark:text-slate-100">Usuarios</h2>
+    <div className="flex items-center gap-4">
+      <label className="text-sm flex items-center gap-2 text-gray-700 dark:text-slate-300">
+        <input
+          type="checkbox"
+          checked={showInactive}
+          onChange={(e) => setShowInactive(e.target.checked)}
+        />
+        Mostrar inactivos
+      </label>
+      <Link
+        href="/admin/users/new"
+        className="btn-primary text-white px-4 py-2 rounded-xl"
+      >
+        Nuevo usuario
+      </Link>
+    </div>
+  </div>
+
+  <div className="overflow-x-auto">
+    {/* border-collapse evita halos y gaps; quitamos table-striped */}
+    <table className="min-w-full w-full border-collapse text-gray-900 dark:text-slate-100">
+      <thead className="bg-gray-100 dark:bg-slate-800/70">
+        <tr>
+          <th className="px-6 py-3 text-left text-xs font-bold">ID</th>
+          <th className="px-6 py-3 text-left text-xs font-bold">Nombre</th>
+          <th className="px-6 py-3 text-left text-xs font-bold">Email</th>
+          <th className="px-6 py-3 text-left text-xs font-bold">Rol</th>
+          <th className="px-6 py-3 text-left text-xs font-bold">Estado registro</th>
+          <th className="px-6 py-3"></th>
+        </tr>
+      </thead>
+
+      {/* divide en dark debe ser oscuro; forzamos fondo uniforme por fila */}
+      <tbody
+        className="
+          divide-y divide-gray-200 dark:divide-slate-700
+          [&>tr]:bg-white dark:[&>tr]:bg-[#0f172a]
+        "
+      >
+        {users.map((u) => (
+          <tr key={u.id_usuario}>
+            <td className="px-6 py-3">{u.id_usuario}</td>
+            <td className="px-6 py-3">{u.nombre}</td>
+            <td className="px-6 py-3">{u.email}</td>
+            <td className="px-6 py-3">
+              <span
+                className={`text-xs px-2 py-0.5 rounded-full mr-2 ${
+                  u.activo ? "bg-green-100 text-green-700" : "bg-gray-200 text-gray-700"
+                }`}
+              >
+                {u.activo ? "Activo" : "Inactivo"}
+              </span>
+              {(u.roles?.map((r: any) => r.nombre).join(", ")) ?? ""}
+            </td>
+            <td className="px-6 py-3">
+              <span className={`text-xs px-2 py-0.5 rounded-full ${getStatusStyles(u.estado_registro)}`}>
+                {formatStatusLabel(u.estado_registro)}
+              </span>
+              {u.fecha_revision && (
+                <p className="text-xs text-gray-500 dark:text-slate-400 mt-1">
+                  Revisado: {formatDateTime(u.fecha_revision)}
+                </p>
+              )}
+              {u.comentario_revision && (
+                <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">
+                  Nota: {u.comentario_revision}
+                </p>
+              )}
+            </td>
+            <td className="px-6 py-3 whitespace-nowrap">
+              <div className="flex gap-2">
+                <AdminActions.User
+                  id={u.id_usuario}
+                  active={u.activo}
+                  estadoRegistro={u.estado_registro}
+                  onDeleted={() => {
+                    try {
+                      setUsers((prev: any[]) => prev.filter((x) => x.id_usuario !== u.id_usuario));
+                    } catch {}
+                  }}
+                  onToggled={() => {
+                    try {
+                      setUsers((prev: any[]) =>
+                        prev.map((x) => (x.id_usuario === u.id_usuario ? { ...x, activo: !x.activo } : x))
+                      );
+                    } catch {}
+                  }}
+                  onRegistrationUpdated={(updated) => {
+                    try {
+                      setUsers((prev: any[]) =>
+                        prev.map((x) => (x.id_usuario === u.id_usuario ? { ...x, ...updated } : x))
+                      );
+                    } catch {}
+                  }}
+                />
+              </div>
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+</div>
+
 
       {/* Publicaciones */}
       <div className="bg-white rounded-2xl shadow-xl p-6">
@@ -392,16 +524,81 @@ export default function AdminPage() {
 }
 
 const AdminActions = {
+  RegistrationReview: ({
+    id,
+    onCompleted,
+  }: {
+    id: number;
+    onCompleted?: (result?: any) => void;
+  }) => {
+    async function review(decision: "aprobar" | "rechazar") {
+      let comentario: string | undefined;
+      if (decision === "rechazar") {
+        const input = prompt("Motivo del rechazo (requerido):");
+        if (input === null) return;
+        const trimmed = input.trim();
+        if (!trimmed) {
+          alert("Debes ingresar un motivo para rechazar la solicitud.");
+          return;
+        }
+        comentario = trimmed;
+      }
+
+      const r = await apiFetch(`/admin/users/${id}/review`, {
+        method: "PATCH",
+        auth: true,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ decision, comentario }),
+      });
+      const payload = await r.json().catch(() => ({} as any));
+      if (!r.ok) {
+        return alert(
+          payload?.detail ||
+            `No se pudo ${decision === "aprobar" ? "aprobar" : "rechazar"} (HTTP ${
+              r.status
+            })`
+        );
+      }
+      alert(
+        decision === "aprobar"
+          ? "Usuario aprobado correctamente."
+          : "Usuario rechazado correctamente."
+      );
+      onCompleted?.(payload);
+    }
+
+    return (
+      <>
+        <button
+          onClick={() => review("aprobar")}
+          className="px-3 py-1 rounded-lg bg-green-600 text-white"
+        >
+          Aprobar
+        </button>
+        <button
+          onClick={() => review("rechazar")}
+          className="px-3 py-1 rounded-lg bg-red-600 text-white"
+        >
+          Rechazar
+        </button>
+      </>
+    );
+  },
+
   User: ({
     id,
     active,
+    estadoRegistro,
     onDeleted,
     onToggled,
+    onRegistrationUpdated,
   }: {
     id: number;
     active: boolean;
+    estadoRegistro?: string | null;
     onDeleted?: () => void;
     onToggled?: () => void;
+    onRegistrationUpdated?: (user: any) => void;
   }) => {
     const deleteLabel = active ? "Eliminar" : "Eliminar definitivamente";
     async function del() {
@@ -439,6 +636,23 @@ const AdminActions = {
       location.href = `/admin/users/${id}`;
     }
 
+    async function approveRejected() {
+      const r = await apiFetch(`/admin/users/${id}/review`, {
+        method: "PATCH",
+        auth: true,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ decision: "aprobar" }),
+      });
+      const payload = await r.json().catch(() => ({} as any));
+      if (!r.ok) {
+        return alert(
+          payload?.detail || `No se pudo aprobar (HTTP ${r.status})`,
+        );
+      }
+      alert("Usuario aprobado correctamente.");
+      onRegistrationUpdated?.(payload);
+    }
+
     return (
       <>
         <button
@@ -453,6 +667,14 @@ const AdminActions = {
         >
           {active ? "Desactivar" : "Activar"}
         </button>
+        {String(estadoRegistro || "").toLowerCase() === "rechazado" && (
+          <button
+            onClick={approveRejected}
+            className="px-3 py-1 rounded-lg bg-emerald-600 text-white"
+          >
+            Aprobar
+          </button>
+        )}
         <button
           onClick={del}
           className="px-3 py-1 rounded-lg bg-red-600 text-white"
