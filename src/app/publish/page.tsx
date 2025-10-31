@@ -9,6 +9,7 @@ import {
   keepDigits,
 } from "@/lib/publicationLimits";
 import { apiFetch } from "@/lib/api";
+import { useDialog } from "@/Componets/DialogProvider";
 
 export default function PublishPage() {
   const [marca, setMarca] = useState("");
@@ -24,6 +25,7 @@ export default function PublishPage() {
   const [telefono, setTelefono] = useState("+549 ");
   const [imagenes, setImagenes] = useState<File[]>([]);
   const [error, setError] = useState("");
+  const dialog = useDialog();
 
   const handleKilometrajeChange = (value: string) => {
     setKilometraje(keepDigits(value, LIMITS.kilometros));
@@ -149,10 +151,13 @@ export default function PublishPage() {
         throw new Error("Error al publicar.");
       }
 
-      alert(
-        payload?.message ??
-          "Vehiculo enviado a revision. Te avisaremos cuando sea aprobado."
-      );
+      await dialog.alert({
+        title: "Publicación enviada",
+        message:
+          payload?.message ??
+          "Vehiculo enviado a revision.",
+        variant: "success",
+      });
       window.location.href = "/catalog";
     } catch (err: unknown) {
       if (err instanceof Error && err.message) {

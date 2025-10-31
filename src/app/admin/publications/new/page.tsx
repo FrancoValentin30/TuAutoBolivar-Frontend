@@ -9,8 +9,10 @@ import {
   keepDigits,
 } from "@/lib/publicationLimits";
 import { apiFetch } from "@/lib/api";
+import { useDialog } from "@/Componets/DialogProvider";
 
 export default function AdminCreatePublicationPage() {
+  const dialog = useDialog();
   const [marca, setMarca] = useState("");
   const [modelo, setModelo] = useState("");
   const [anio, setAnio] = useState("");
@@ -153,7 +155,11 @@ export default function AdminCreatePublicationPage() {
         throw new Error("Error al crear la publicacion.");
       }
 
-      alert(payload?.message ?? "Publicacion creada correctamente.");
+      await dialog.alert({
+        title: "Publicación creada",
+        message: payload?.message ?? "Publicacion creada correctamente.",
+        variant: "success",
+      });
       window.location.href = "/admin";
     } catch (err: unknown) {
       if (err instanceof Error && err.message) {

@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { API_BASE, apiFetch } from "@/lib/api";
 import ImageManager from "@/Componets/ImageManager";
+import { useDialog } from "@/Componets/DialogProvider";
 import {
   PUBLICATION_LIMITS as LIMITS,
   PUBLICATION_WARNINGS as WARNINGS,
@@ -49,6 +50,7 @@ const toDigits = (value: unknown, limit: number) => keepDigits(value != null ? S
 export default function AdminEditPublicationPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
+  const dialog = useDialog();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -126,9 +128,13 @@ export default function AdminEditPublicationPage() {
   async function setAsPrincipal(img: Img) {
     const imageId = img.id_imagen ?? img.id;
     if (!imageId) {
-      alert("No se puede marcar principal: id de imagen no disponible");
+      await dialog.alert({
+        title: "Acción no disponible",
+        message: "No se puede marcar principal: id de imagen no disponible.",
+        variant: "warning",
+      });
       return;
-        }
+    }
     try {
       const response = await apiFetch(`/publications/${id}/images/${imageId}/set-principal`, {
         method: "PATCH",
@@ -139,23 +145,41 @@ export default function AdminEditPublicationPage() {
         throw new Error(payload?.detail || `No se pudo actualizar principal (HTTP ${response.status})`);
       }
       setPub(payload);
-        } catch (e) {
+    } catch (e) {
       const err = e as Error;
-      alert(err.message || "Error al marcar principal");
-        }
+      await dialog.alert({
+        title: "Error",
+        message: err.message || "Error al marcar principal",
+        variant: "error",
+      });
+    }
   }
 
   async function deleteImage(img: Img) {
     const imageId = img.id_imagen ?? img.id;
     if (!imageId) {
-      alert("No se puede eliminar: id de imagen no disponible");
-      return;
-        }
-    if (currentImages.length + newImages.length <= 1) {
-      alert("Debes mantener al menos una imagen. Agrega una nueva antes de eliminar la actual.");
+      await dialog.alert({
+        title: "Acción no disponible",
+        message: "No se puede eliminar: id de imagen no disponible.",
+        variant: "warning",
+      });
       return;
     }
-    if (!confirm("Eliminar esta imagen?")) return;
+    if (currentImages.length + newImages.length <= 1) {
+      await dialog.alert({
+        title: "No se puede eliminar",
+        message: "Debes mantener al menos una imagen. Agrega una nueva antes de eliminar la actual.",
+        variant: "warning",
+      });
+      return;
+    }
+    const confirmed = await dialog.confirm({
+      title: "Eliminar imagen",
+      message: "Eliminar esta imagen?",
+      confirmText: "Eliminar",
+      variant: "warning",
+    });
+    if (!confirmed) return;
     try {
       const response = await apiFetch(`/publications/${id}/images/${imageId}`, {
         method: "DELETE",
@@ -173,10 +197,14 @@ export default function AdminEditPublicationPage() {
             }
           : prev
       );
-        } catch (e) {
+    } catch (e) {
       const err = e as Error;
-      alert(err.message || "Error al eliminar imagen");
-        }
+      await dialog.alert({
+        title: "Error",
+        message: err.message || "Error al eliminar imagen",
+        variant: "error",
+      });
+    }
   }
 
   async function onSubmit(e: React.FormEvent) {
@@ -310,7 +338,11 @@ export default function AdminEditPublicationPage() {
         }
       }
 
-      alert("Cambios guardados");
+      await dialog.alert({
+        title: "Cambios guardados",
+        message: "Los cambios se aplicaron correctamente.",
+        variant: "success",
+      });
       router.push("/admin");
     } catch (e) {
       const err = e as Error;

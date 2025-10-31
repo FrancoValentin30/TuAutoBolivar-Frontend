@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { apiFetch } from "@/lib/api";
+import { useDialog } from "@/Componets/DialogProvider";
 
 function extractErrorMessage(detail: unknown, fallback: string): string {
   if (!detail) return fallback;
@@ -34,6 +35,7 @@ export default function AdminNewUserPage() {
   const [error, setError] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const dialog = useDialog();
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -107,7 +109,11 @@ export default function AdminNewUserPage() {
         );
       }
 
-      alert("Usuario creado correctamente");
+      await dialog.alert({
+        title: "Usuario creado",
+        message: "Usuario creado correctamente.",
+        variant: "success",
+      });
       router.push("/admin");
     } catch (err: unknown) {
       if (err instanceof Error && err.message) {

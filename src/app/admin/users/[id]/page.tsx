@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { apiFetch } from "@/lib/api";
+import { useDialog } from "@/Componets/DialogProvider";
 
 type AdminUser = {
   id_usuario: number;
@@ -16,6 +17,7 @@ type AdminUser = {
 export default function AdminEditUserPage() {
   const { id } = useParams();
   const router = useRouter();
+  const dialog = useDialog();
   const [u, setU] = useState<AdminUser | null>(null);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -89,7 +91,11 @@ export default function AdminEditUserPage() {
         }
       }
 
-      alert("Cambios guardados");
+      await dialog.alert({
+        title: "Cambios guardados",
+        message: "La información del usuario se actualizó correctamente.",
+        variant: "success",
+      });
       router.push("/admin");
     } catch (e: any) {
       setError(e?.message || "Error al guardar");

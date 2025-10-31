@@ -2,10 +2,12 @@
 import { useEffect, useState } from "react";
 import { apiFetch } from "@/lib/api";
 import { clearSession, updateStoredUser } from "@/lib/auth";
+import { useDialog } from "@/Componets/DialogProvider";
 
 export default function ProfilePage() {
   const [user, setUser] = useState<any>(null);
   const [form, setForm] = useState({ name:"", email:"", phone:"", password:"", confirmPassword:"" });
+  const dialog = useDialog();
 
   useEffect(()=>{
     // Cargar desde API (más confiable que localStorage)
@@ -38,8 +40,22 @@ export default function ProfilePage() {
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!user) return alert("Debes estar logueado.");
-    if (form.password && form.password !== form.confirmPassword) return alert("Las contraseñas no coinciden.");
+    if (!user) {
+      await dialog.alert({
+        title: "Sesión requerida",
+        message: "Debes estar logueado.",
+        variant: "warning",
+      });
+      return;
+    }
+    if (form.password && form.password !== form.confirmPassword) {
+      await dialog.alert({
+        title: "Contraseñas",
+        message: "Las contraseñas no coinciden.",
+        variant: "warning",
+      });
+      return;
+    }
 
     // Solo name y password (email/phone solo lectura)
     const payload: any = { name: form.name };
@@ -52,11 +68,22 @@ export default function ProfilePage() {
       auth: true,
     });
     const data = await r.json();
-    if (!r.ok) return alert(data.detail || "No se pudo actualizar el perfil.");
+    if (!r.ok) {
+      await dialog.alert({
+        title: "Error",
+        message: data.detail || "No se pudo actualizar el perfil.",
+        variant: "error",
+      });
+      return;
+    }
 
     try { updateStoredUser(data); } catch {}
     setUser(data);
-    alert("¡Perfil actualizado!");
+    await dialog.alert({
+      title: "Perfil actualizado",
+      message: "Tu perfil se actualizó correctamente.",
+      variant: "success",
+    });
     setForm(s => ({ ...s, password:"", confirmPassword:"" }));
   }
 
@@ -99,23 +126,48 @@ export default function ProfilePage() {
                       ? pj.filter((p:any) => String(p?.estado ?? "").toLowerCase() === "activo")
                       : [];
                     if (actives.length > 0) {
-                      alert(`No podés eliminar tu cuenta mientras tengas ${actives.length} publicación(es) activa(s). Eliminá o desactivá tus publicaciones primero.`);
+                      await dialog.alert({
+                        title: "Acción no permitida",
+                        message: `No podés eliminar tu cuenta mientras tengas ${actives.length} publicación(es) activa(s). Eliminá o desactivá tus publicaciones primero.`,
+                        variant: "warning",
+                      });
                       return;
                     }
                   } catch {}
                 }
 
-                if (!confirm("¿Eliminar tu cuenta? Se realizará un borrado lógico (podrás reactivarla con un admin).")) return;
+                const confirmed = await dialog.confirm({
+                  title: "Eliminar cuenta",
+                  message: "¿Eliminar tu cuenta? Se realizará un borrado lógico (podrás reactivarla con un admin).",
+                  confirmText: "Eliminar",
+                  variant: "warning",
+                });
+                if (!confirmed) return;
               } catch {}
               try {
                 const r = await apiFetch(`/users/me`, { method: "DELETE", auth: true });
                 const j = await r.json().catch(()=>({}));
-                if (!r.ok) { alert(j?.detail || `No se pudo eliminar (HTTP ${r.status})`); return; }
+                if (!r.ok) {
+                  await dialog.alert({
+                    title: "Error",
+                    message: j?.detail || `No se pudo eliminar (HTTP ${r.status})`,
+                    variant: "error",
+                  });
+                  return;
+                }
                 clearSession();
-                alert("Cuenta eliminada (soft delete). Hasta luego.");
+                await dialog.alert({
+                  title: "Cuenta eliminada",
+                  message: "Cuenta eliminada (soft delete). Hasta luego.",
+                  variant: "success",
+                });
                 window.location.href = "/login";
               } catch (e: any) {
-                alert(e?.message || "Error al eliminar cuenta");
+                await dialog.alert({
+                  title: "Error",
+                  message: e?.message || "Error al eliminar cuenta",
+                  variant: "error",
+                });
               }
             }}
           >
